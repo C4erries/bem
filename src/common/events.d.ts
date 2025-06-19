@@ -11,6 +11,8 @@
  *     to change them back into arrays yourself! See 'toArray()' in src/panorama/hud.ts
  */
 
+
+
 // To declare an event for use, add it to this table with the type of its data
 interface CustomGameEventDeclarations {
     example_event: ExampleEventData,
@@ -18,7 +20,10 @@ interface CustomGameEventDeclarations {
     countdown: gametimerData,
     time_remaining: gametimerData,
     overtime_alert: {killcount: number},
-    score_board: scoreBoardData
+    score_board: scoreBoardData,
+    item_will_spawn: { spawn_location:  Vector },
+    item_has_spawned: {},
+    overthrow_item_drop: overthrowItemDropData,
 }
 
 // Define the type of data sent by the example_event event
@@ -42,4 +47,9 @@ interface gametimerData{
 interface scoreBoardData{
     team_id: number,
     team_score: number,
+}
+
+interface overthrowItemDropData{
+    hero_id: string,
+    dropped_item: string
 }

@@ -124,7 +124,7 @@ function AlertTimer( data )
 //==============================================================
 function OnOvertimeStart( data )
 {
-//	$.Msg( "Overtime Goal: ", data );
+	$.Msg( "Overtime Goal: ", data );
 	var new_score_to_win = data.killcount;
 	var overtimeText = "";
 	overtimeText += new_score_to_win

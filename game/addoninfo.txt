@@ -14,9 +14,33 @@
 	HeroGuidesSupported = true
 	ForceDefaultGuide = true
 	MinimalPrecache = false
-	MinPlayers = 1
-	MaxPlayers = 10
-	map_options = null
 	PenaltiesEnabled = false
 	TeamCount = -1
+	MinimalPrecache = 0
+	ForceDefaultGuide = 0
+	EnablePickRules = 1
+	DrawCustomTeamHeroesOnMinimap = 1
+	map_options = 
+	[
+		{
+			MaxPlayers = 16
+			map = "temple_quartet"
+		},
+		{
+			MaxPlayers = 15
+			map = "desert_quintet"
+		},
+		{
+			MaxPlayers = 10
+			map = "forest_solo"
+		},
+		{
+			MaxPlayers = 10
+			map = "desert_duo"
+		},
+		{
+			MaxPlayers = 9
+			map = "mines_trio"
+		},
+	]
 }

@@ -18,6 +18,7 @@
     flow-children: down;
 	width: 100px;
 	height: 100px;
+    margin-right: 50px;
 
 	background-image: url("file://{images}/custom_game/goal_logo.psd");
 	background-repeat: no-repeat;
@@ -80,13 +81,13 @@
 
 .TeamOverlay
 {
-    width: 100%;
-    height: 100%;
+    width: 50%;
+    height: 50%;
 }
 
 #TeamNotices
 {
-	margin-top: 50px;
+	margin-top: 0px;
 	flow-children: down;
 	width: 100%;
 }
@@ -103,7 +104,7 @@
 
 .tied_for_first #FirstPlaceIndicator
 {
-//    visibility: visible;
+    /* visibility: visible; */
 }
 
 #VeryCloseIndicator
@@ -111,7 +112,7 @@
     width: 100%;
     height: 100%;
     background-color: rgba(255, 0, 255, 0.42);
-//    visibility: collapse;
+/*    visibility: collapse; */
 }
 
 .very_close_to_victory #VeryCloseIndicator

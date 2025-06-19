@@ -33,16 +33,19 @@ function UpdateTimer( data )
 function ShowTimer( data )
 {
 	$( "#Timer" ).AddClass( "timer_visible" );
+	$.Msg( "ShowTimer" );
 }
 
 function AlertTimer( data )
 {
 	$( "#Timer" ).AddClass( "timer_alert" );
+	$.Msg( "AlertTimer" );
 }
 
 function HideTimer( data )
 {
 	$( "#Timer" ).AddClass( "timer_hidden" );
+	$.Msg( "HideTimer" );
 }
 
 function UpdateKillsToWin()

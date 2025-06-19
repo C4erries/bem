@@ -9,7 +9,7 @@ declare global {
     interface CDOTAGameRules {
         Addon: GameMode;
     }
-    let nCOUNTDOWNTIMER: number;
+    let nCOUNTDOWNTIMER : number;
 }
 
 @reloadable
@@ -113,7 +113,8 @@ export class GameMode {
    
 
     private configure(): void {
-        nCOUNTDOWNTIMER = 901;
+        nCOUNTDOWNTIMER = 901
+        
         GameRules.GetGameModeEntity().SetThink("OnThink", this, "OnThink", 1.0);
 
 
