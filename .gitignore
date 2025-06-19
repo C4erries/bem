@@ -1,7 +1,6 @@
 node_modules
 
-/content/panorama/scripts/custom_game/**/*.js
-/game/scripts/vscripts/**/*.lua
+
 content/materials/models/
 content/maps/
 content/models/
