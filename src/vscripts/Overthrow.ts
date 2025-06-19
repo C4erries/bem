@@ -3,6 +3,14 @@ import { AddVector } from "./Utility";
 
 
 
+declare interface SpawnLocation{
+    hSpawnLocation: CBaseEntity,
+    path_track_name: string,
+    world_effects_name: string,
+    hDrop: CDOTA_Item_Physical | undefined,
+    hItemDestinationRevealer: CDOTA_BaseNPC | undefined,
+    nItemDestinationParticles: ParticleID | undefined,
+}
 
 export class Overthrow {
 
@@ -33,16 +41,16 @@ export class Overthrow {
 	tier3ItemBucket: string[] = []
 	tier4ItemBucket: string[] = []
 	tier5ItemBucket: string[] = []
-    nNextSpawnItemNumber: any;
-    nMaxItemSpawns: any;
-    spawnTime: any;
+    nNextSpawnItemNumber: number = 1;
+    nMaxItemSpawns: number = 30;
+    spawnTime: number = 60;
     warnTime: number = 7;
-    hasWarnedSpawn: any;
-    itemSpawnLocations: any[] = [];
+    hasWarnedSpawn: boolean = false;
+    itemSpawnLocations: SpawnLocation[] = [];
+    itemSpawnLocationsInUse: SpawnLocation[]  = [];
     itemSpawnLocation = Entities.FindByName( undefined, "greevil" )
     itemSpawnIndex: number = 1;
-    itemSpawnLocationsInUse: any[]  = [];
-    hCurrentItemSpawnLocation: any;
+    hCurrentItemSpawnLocation: SpawnLocation | undefined;
     hItemDestinationRevealer: CDOTA_BaseNPC | undefined;
     nItemDestinationParticles: ParticleID | undefined;
 
@@ -59,7 +67,7 @@ export class Overthrow {
         this.m_VictoryMessages.set(DotaTeam.CUSTOM_7, "#VictoryMessage_Custom7");
         this.m_VictoryMessages.set(DotaTeam.CUSTOM_8, "#VictoryMessage_Custom8");
 
-        this.SetUpFountains()
+        this.SetUpFountains()  
 
 
         this.CustomSpawnCamps()
@@ -593,22 +601,25 @@ export class Overthrow {
             }
             case "item_treasure_chest":{
                 const hContainer = item.GetContainer()
-                /*
-                for k,v in pairs ( this.itemSpawnLocationsInUse ) ){
-                    if v.hDrop == hContainer {
+                const func = () => {
+                this.itemSpawnLocationsInUse.forEach((v,k)=>{
+                    if (v.hDrop == hContainer){
                         //print( '^^^DROP CONTAINER!' )
-                        if v.hItemDestinationRevealer {
-                            v.hItemDestinationRevealer:RemoveSelf()
-                            ParticleManager.DestroyParticle( v.nItemDestinationParticles, false )
+                        if (v.hItemDestinationRevealer != undefined) {
+                            v.hItemDestinationRevealer.RemoveSelf()
+                            if(v.nItemDestinationParticles != undefined){   
+                                ParticleManager.DestroyParticle( v.nItemDestinationParticles, false )
+                            }
                             DoEntFire( v.world_effects_name, "Stop", "0", 0, this, this )
                         }
-                        
-                        table.insert( this.itemSpawnLocations, v )
-                        table.remove( this.itemSpawnLocationsInUse, k )
-                        break
+                        this.itemSpawnLocations.push(v)
+                        this.itemSpawnLocationsInUse.splice(k, 1)
+                        return
                     }
+                })
                 }
-                */
+                func()
+                
                 
                 this.SpecialItemAdd( event )// unimplemented
     
@@ -863,7 +874,8 @@ export class Overthrow {
     }
 
     PlanNextSpawn(){
-        if (this.itemSpawnLocations == undefined) {
+        print("PlanNextSpawn")
+        if (this.itemSpawnLocations == undefined || this.itemSpawnLocations.length ==0) {
             this.itemSpawnLocations = []
             this.itemSpawnLocationsInUse = []
             let nMaxSpawns = 8
@@ -878,7 +890,7 @@ export class Overthrow {
 
             for (let i=0; i < nMaxSpawns; i++) {
                 const spawnName = "item_spawn_" + i
-                //print( '^^^SEARCHING FOR SPAWN POINT NAMED = ' .. spawnName )
+                print( '^^^SEARCHING FOR SPAWN POINT NAMED = ' + spawnName )
                 const hSpawnLocation = Entities.FindByName( undefined, spawnName )
                 if (hSpawnLocation == undefined ){
                     print( '^^^MISSING SPAWN LOCATION = ' + spawnName )
@@ -889,6 +901,9 @@ export class Overthrow {
                         hSpawnLocation: hSpawnLocation,
                         path_track_name: "item_spawn_" + i,
                         world_effects_name: "item_spawn_particle_" + i,
+                        hDrop: undefined,
+                        hItemDestinationRevealer: undefined,
+                        nItemDestinationParticles: undefined
                     }
                     this.itemSpawnLocations[i] = newSpawnLocation
                 }
@@ -897,14 +912,14 @@ export class Overthrow {
         
 
         if (this.itemSpawnLocations.length <= 0) {
-            //print( 'RAN OUT OF SPAWN LOCATIONS!' )
+            print( 'RAN OUT OF SPAWN LOCATIONS!' )
             return false
         }
 
         const r = RandomInt( 0, this.itemSpawnLocations.length-1 )
         const spawnPoint = this.itemSpawnLocations[r]
-        table.remove( this.itemSpawnLocations, r )
-        table.insert( this.itemSpawnLocationsInUse, spawnPoint )
+        this.itemSpawnLocations.splice(r, 1)
+        this.itemSpawnLocationsInUse.push( spawnPoint )
 
         this.hCurrentItemSpawnLocation = spawnPoint
 
@@ -912,11 +927,15 @@ export class Overthrow {
     }
 
     WarnItem(){
+        print("WarnItem")
         //find the spawn point
         if (!this.PlanNextSpawn()) {
             return false
         }
-        
+        if(this.hCurrentItemSpawnLocation == undefined){
+            print("WarnItem: this.hCurrentItemSpawnLocation undefined")
+            return
+        }
         const spawnLocation = this.hCurrentItemSpawnLocation.hSpawnLocation.GetAbsOrigin();
 
         //notify everyone
@@ -935,6 +954,7 @@ export class Overthrow {
     }
 
     SpawnItem(){
+        print("SpawnItem")
         //notify everyone
         CustomGameEventManager.Send_ServerToAllClients( "item_has_spawned", {})
         EmitGlobalSound( "Overthrow.Item.Spawn" )
@@ -949,6 +969,10 @@ export class Overthrow {
         }
         treasureAbility.SetLevel( 1 )
     //print ("Spawning Treasure")
+        if(this.hCurrentItemSpawnLocation == undefined){
+            print("SpawnItem: this.hCurrentItemSpawnLocation undefined")
+            return
+        }
         treasureCourier.SetInitialGoalEntity( this.hCurrentItemSpawnLocation.hSpawnLocation )
     //const particleTreasure = ParticleManager.CreateParticle( "particles/items_fx/black_king_bar_avatar.vpcf", PATTACH_ABSORIGIN, treasureCourier )
         //ParticleManager.SetParticleControlEnt( particleTreasure, PATTACH_ABSORIGIN, treasureCourier, PATTACH_ABSORIGIN, "attach_origin", treasureCourier:GetAbsOrigin(), true )
@@ -979,7 +1003,7 @@ export class Overthrow {
     }
 
     TreasureDrop( treasureCourier : CDOTA_BaseNPC) : void{
-
+        print("TreasureDrop")
         //Destroy vision revealer
         this.hItemDestinationRevealer?.RemoveSelf()
         if(this.nItemDestinationParticles != undefined){
@@ -1012,11 +1036,19 @@ export class Overthrow {
         drop.SetForwardVector( treasureCourier.GetRightVector() ) //oriented differently
         newItem.LaunchLootInitialHeight( false, 0, 50, 0.25, spawnPoint )
 
+        if(this.hCurrentItemSpawnLocation == undefined){
+            print("TreasureDrop: this.hCurrentItemSpawnLocation undefined")
+            return
+        }
+
         this.hCurrentItemSpawnLocation.hDrop = drop
 
-        //print( '^^^ITEM SPAWN LOCATIONS' )
+        print( '^^^ITEM SPAWN LOCATIONS' )
+        let temp = ""
+        //this.itemSpawnLocations.forEach((v)=>temp+=v.)
+        print(this.itemSpawnLocations)
         //PrintTable( this.itemSpawnLocations )
-        //print( '^^^ITEM SPAWN LOCATIONS IN USE' )
+        print( '^^^ITEM SPAWN LOCATIONS IN USE' )
         //PrintTable( this.itemSpawnLocationsInUse )
 
         //Stop the particle effect
