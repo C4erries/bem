@@ -30,8 +30,8 @@ export class Overthrow {
     public m_VictoryMessages = new Map<number, string>();
     public runnerupTeam = -1;
     public runnerupTeamScore = -1;
-    public m_GatheredShuffledTeams: any[] = [];
-    public spawncamps = new Map<string, any>(); // Похорошему вместо any написать новый тип
+    public m_GatheredShuffledTeams: number[] = [];
+    public spawncamps = new Map<string, any>(); // Похорошему вместо any написать новый тип (или это ентити ХЗ)
     public m_bFillWithBots = true;
     public _fPreGameStartTime: number = 10;
     public numSpawnCamps = 5;
@@ -72,13 +72,13 @@ export class Overthrow {
 
         this.CustomSpawnCamps()
 	
-
+        ListenToGameEvent( "dota_npc_goal_reached", this.OnNpcGoalReached, this )
         GameRules.GetGameModeEntity().SetExecuteOrderFilter( (event) => this.ExecuteOrderFilter(event), this)
     }
 
-    public ShuffledList( orig_list : unknown[] ){
+    public ShuffledList<Type>( orig_list : Type[] ): Type[]{
         const list = orig_list.slice() // копируем список
-        const result: unknown[] = [] // результат
+        const result: Type[] = [] // результат
         const count = list.length
         let t : string = ""
         //list.forEach( (v, i) => print("ShuffledList: list.foreach: value: " + v + " index " + i))
@@ -332,7 +332,7 @@ export class Overthrow {
                     // determine if we can scoop the neutral or not
                     // we need either a free backpack slot or a free neutral item slot
                     let bAllowPickup = false
-                    const hNeutralItem = hero.GetItemInSlot(InventorySlot.NEUTRAL_SLOT)
+                    const hNeutralItem = hero.GetItemInSlot(16) // InventorySlot.NEUTRAL_SLOT -- не работает почему-то, на практике ровно nil а не 16
                     if (hNeutralItem == undefined) {
                         bAllowPickup = true
                         //print( '^^^Empty neutral slot!' )
@@ -413,15 +413,15 @@ export class Overthrow {
     }
 
     public UpdateScoreboard(){
-        const sortedTeams: any[] = []
-        for (const [_, team] of pairs( this.m_GatheredShuffledTeams )) {
-            table.insert( sortedTeams, { teamID: team, teamScore: GetTeamHeroKills( team ) } )
-        }
+        const sortedTeams: {teamID:number, teamScore: number}[] = []
+        this.m_GatheredShuffledTeams.forEach(team => {
+            sortedTeams.push( { teamID: team, teamScore: GetTeamHeroKills( team ) } )
+        })
 
         // reverse-sort by score
         table.sort( sortedTeams, (a,b) => { return ( a.teamScore > b.teamScore ) } )
 
-        for (const [_, t] of pairs( sortedTeams ) ){
+        sortedTeams.forEach(t=> {
             const clr = ColorForTeam( t.teamID )
 
             // Scaleform UI Scoreboard
@@ -431,7 +431,7 @@ export class Overthrow {
                 team_score: t.teamScore
             }
             CustomGameEventManager.Send_ServerToAllClients( "score_board", score )
-        }
+        })
         
         // Leader effects (moved from OnTeamKillCredit)
         const leader = sortedTeams[0].teamID
@@ -601,10 +601,12 @@ export class Overthrow {
             }
             case "item_treasure_chest":{
                 const hContainer = item.GetContainer()
+
+                //надо на нормальный for переписать, вместо return поставить break чтобы можно было
                 const func = () => {
                 this.itemSpawnLocationsInUse.forEach((v,k)=>{
                     if (v.hDrop == hContainer){
-                        //print( '^^^DROP CONTAINER!' )
+                        print( '^^^DROP CONTAINER!' )
                         if (v.hItemDestinationRevealer != undefined) {
                             v.hItemDestinationRevealer.RemoveSelf()
                             if(v.nItemDestinationParticles != undefined){   
@@ -620,8 +622,7 @@ export class Overthrow {
                 }
                 func()
                 
-                
-                this.SpecialItemAdd( event )// unimplemented
+                this.SpecialItemAdd( event )
     
                 break;
             }
@@ -692,15 +693,20 @@ export class Overthrow {
         }
         const hero = owner.GetClassname()
         const ownerTeam = owner.GetTeamNumber()
-        const sortedTeams: any[] = []
-        for (const [_, team] of  this.m_GatheredShuffledTeams ) {
+        const sortedTeams: {teamID:number, teamScore:number}[] = []
+        //print("SpecialItemAdd: ownerTeam " + ownerTeam)
+
+        this.m_GatheredShuffledTeams.forEach( (team) => {
+            //print("for team: "+team)
             sortedTeams.push({ teamID: team, teamScore: GetTeamHeroKills( team ) })
-        }
+        })
 
         //reverse-sort by score
-        sortedTeams.sort((a,b) => b-a)
+
+        sortedTeams.sort((a,b) => b.teamScore-a.teamScore)
         const leader = sortedTeams[0].teamID
-        const lastPlace = sortedTeams[sortedTeams.length].teamID
+        //print("SpecialItemAdd: leader " + leader)
+        const lastPlace = sortedTeams[sortedTeams.length-1].teamID
 
         const tableindex = 0
 
@@ -1000,6 +1006,16 @@ export class Overthrow {
             knockback_height: knockback_height,
         }
         knockBackUnits.forEach((unit) => unit.AddNewModifier(unit, undefined, "modifier_knockback", modifierKnockback ))
+    }
+
+    //------------------------------------------------------------------------------
+// Event: OnNpcGoalReached
+//------------------------------------------------------------------------------
+    OnNpcGoalReached( event : DotaNpcGoalReachedEvent){
+        const npc = EntIndexToHScript( event.npc_entindex ) as  CDOTA_BaseNPC
+        if (npc.GetUnitName() == "npc_dota_treasure_courier") {
+            this.TreasureDrop( npc )
+        }
     }
 
     TreasureDrop( treasureCourier : CDOTA_BaseNPC) : void{
