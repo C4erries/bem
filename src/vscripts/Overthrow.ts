@@ -1,9 +1,8 @@
 import { ExecuteOrderFilter } from "./OverthrowEvents";
 import { OverthrowSpawnItem } from "./OverthrowSpawnItem";
 import { AssignTeams, ColorForTeam } from "./Teams";
-import { AddVector, PickRandomShuffle, ShuffledList } from "./Utility";
-
-
+import { AddVector } from "./Utility";
+import { Config } from "./Config";
 
 
 
@@ -11,28 +10,26 @@ export class Overthrow {
 
     private overthrowSpawnItem = new OverthrowSpawnItem()
 
-    public KILLS_TO_WIN_SINGLES = 20
-    public KILLS_TO_WIN_DUOS = 30
-    public KILLS_TO_WIN_TRIOS = 40
-    public KILLS_TO_WIN_QUADS = 50
-    public KILLS_TO_WIN_QUINTS = 60
+    public KILLS_TO_WIN_SINGLES:number = Config.KILLS_TO_WIN_SINGLES
+    public KILLS_TO_WIN_DUOS:number = Config.KILLS_TO_WIN_DUOS
+    public KILLS_TO_WIN_TRIOS:number = Config.KILLS_TO_WIN_TRIOS
+    public KILLS_TO_WIN_QUADS:number = Config.KILLS_TO_WIN_QUADS
+    public KILLS_TO_WIN_QUINTS:number = Config.KILLS_TO_WIN_QUINTS
 
-    // Переделать НАХУ в конфиги хуенфиги
-    public m_VictoryMessages = new Map<number, string>();
-    public countdownEnabled = false;
-    public isGameTied = true;
-    public TEAM_KILLS_TO_WIN = 50;
-    public leadingTeamScore = 0;
-    public leadingTeam = -1;
-    public runnerupTeam = -1;
-    public runnerupTeamScore = -1;
+    public countdownEnabled:boolean = Config.COUNTDOWN_ENABLED;
+    public isGameTied:boolean = true;
+    public TEAM_KILLS_TO_WIN:number = 50;
+    public leadingTeamScore:number = 0;
+    public leadingTeam:number = -1;
+    public m_VictoryMessages:Map<number,string> = new Map<number, string>();
+    public runnerupTeam:number = -1;
+    public runnerupTeamScore:number = 0;
     public m_GatheredShuffledTeams: number[] = [];
-    public spawncamps = new Map<string, any>(); // Похорошему вместо any написать новый тип (или это ентити ХЗ)
-    public m_bFillWithBots = true;
-    public _fPreGameStartTime: number = 10;
-    public numSpawnCamps = 5;
+    public spawncamps:Map<string, any> = new Map<string, any>(); // Похорошему вместо any написать новый тип (или это ентити ХЗ)
+    public m_bFillWithBots:boolean = Config.FILL_WITH_BOTS;
+    public _fPreGameStartTime:number = Config.PRE_GAME_START_TIME;
+    public numSpawnCamps:number = 5;
 
- 
 
     constructor(GatheredShuffledTeams : number[]){
         this.m_GatheredShuffledTeams = GatheredShuffledTeams
