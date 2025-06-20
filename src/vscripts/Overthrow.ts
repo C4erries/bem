@@ -1,48 +1,56 @@
 import { ColorForTeam } from "./Teams";
 import { AddVector } from "./Utility";
+import { Config } from "./Config";
+import { GameConfig } from "./GameConfig";
 
 
 
+declare interface SpawnLocation{
+    hSpawnLocation: CBaseEntity,
+    path_track_name: string,
+    world_effects_name: string,
+    hDrop: CDOTA_Item_Physical | undefined,
+    hItemDestinationRevealer: CDOTA_BaseNPC | undefined,
+    nItemDestinationParticles: ParticleID | undefined,
+}
 
 export class Overthrow {
 
+    public KILLS_TO_WIN_SINGLES:number = Config.KILLS_TO_WIN_SINGLES
+    public KILLS_TO_WIN_DUOS:number = Config.KILLS_TO_WIN_DUOS
+    public KILLS_TO_WIN_TRIOS:number = Config.KILLS_TO_WIN_TRIOS
+    public KILLS_TO_WIN_QUADS:number = Config.KILLS_TO_WIN_QUADS
+    public KILLS_TO_WIN_QUINTS:number = Config.KILLS_TO_WIN_QUINTS
 
-    public KILLS_TO_WIN_SINGLES = 20
-    public KILLS_TO_WIN_DUOS = 30
-    public KILLS_TO_WIN_TRIOS = 40
-    public KILLS_TO_WIN_QUADS = 50
-    public KILLS_TO_WIN_QUINTS = 60
-
-    // Переделать НАХУ в конфиги хуенфиги
-    public countdownEnabled = false;
-    public isGameTied = true;
-    public TEAM_KILLS_TO_WIN = 50;
-    public leadingTeamScore = 0;
-    public leadingTeam = -1;
-    public m_VictoryMessages = new Map<number, string>();
-    public runnerupTeam = -1;
-    public runnerupTeamScore = -1;
-    public m_GatheredShuffledTeams: any[] = [];
-    public spawncamps = new Map<string, any>(); // Похорошему вместо any написать новый тип
-    public m_bFillWithBots = true;
-    public _fPreGameStartTime: number = 10;
-    public numSpawnCamps = 5;
+    public countdownEnabled:boolean = Config.COUNTDOWN_ENABLED;
+    public isGameTied:boolean = true;
+    public TEAM_KILLS_TO_WIN:number = 50;
+    public leadingTeamScore:number = 0;
+    public leadingTeam:number = -1;
+    public m_VictoryMessages:Map<number,string> = new Map<number, string>();
+    public runnerupTeam:number = -1;
+    public runnerupTeamScore:number = 0;
+    public m_GatheredShuffledTeams: number[] = [];
+    public spawncamps:Map<string, any> = new Map<string, any>(); // Похорошему вместо any написать новый тип (или это ентити ХЗ)
+    public m_bFillWithBots:boolean = Config.FILL_WITH_BOTS;
+    public _fPreGameStartTime:number = Config.PRE_GAME_START_TIME;
+    public numSpawnCamps:number = 5;
 
     tier1ItemBucket: string[] = []
 	tier2ItemBucket: string[] = []
 	tier3ItemBucket: string[] = []
 	tier4ItemBucket: string[] = []
 	tier5ItemBucket: string[] = []
-    nNextSpawnItemNumber: any;
-    nMaxItemSpawns: any;
-    spawnTime: any;
+    nNextSpawnItemNumber: number = 1;
+    nMaxItemSpawns: number = 30;
+    spawnTime: number = 60;
     warnTime: number = 7;
-    hasWarnedSpawn: any;
-    itemSpawnLocations: any[] = [];
+    hasWarnedSpawn: boolean = false;
+    itemSpawnLocations: SpawnLocation[] = [];
+    itemSpawnLocationsInUse: SpawnLocation[]  = [];
     itemSpawnLocation = Entities.FindByName( undefined, "greevil" )
     itemSpawnIndex: number = 1;
-    itemSpawnLocationsInUse: any[]  = [];
-    hCurrentItemSpawnLocation: any;
+    hCurrentItemSpawnLocation: SpawnLocation | undefined;
     hItemDestinationRevealer: CDOTA_BaseNPC | undefined;
     nItemDestinationParticles: ParticleID | undefined;
 
@@ -59,18 +67,18 @@ export class Overthrow {
         this.m_VictoryMessages.set(DotaTeam.CUSTOM_7, "#VictoryMessage_Custom7");
         this.m_VictoryMessages.set(DotaTeam.CUSTOM_8, "#VictoryMessage_Custom8");
 
-        this.SetUpFountains()
+        this.SetUpFountains()  
 
 
         this.CustomSpawnCamps()
 	
-
+        ListenToGameEvent( "dota_npc_goal_reached", this.OnNpcGoalReached, this )
         GameRules.GetGameModeEntity().SetExecuteOrderFilter( (event) => this.ExecuteOrderFilter(event), this)
     }
 
-    public ShuffledList( orig_list : unknown[] ){
+    public ShuffledList<Type>( orig_list : Type[] ): Type[]{
         const list = orig_list.slice() // копируем список
-        const result: unknown[] = [] // результат
+        const result: Type[] = [] // результат
         const count = list.length
         let t : string = ""
         //list.forEach( (v, i) => print("ShuffledList: list.foreach: value: " + v + " index " + i))
@@ -324,7 +332,7 @@ export class Overthrow {
                     // determine if we can scoop the neutral or not
                     // we need either a free backpack slot or a free neutral item slot
                     let bAllowPickup = false
-                    const hNeutralItem = hero.GetItemInSlot(InventorySlot.NEUTRAL_SLOT)
+                    const hNeutralItem = hero.GetItemInSlot(16) // InventorySlot.NEUTRAL_SLOT -- не работает почему-то, на практике ровно nil а не 16
                     if (hNeutralItem == undefined) {
                         bAllowPickup = true
                         //print( '^^^Empty neutral slot!' )
@@ -405,15 +413,15 @@ export class Overthrow {
     }
 
     public UpdateScoreboard(){
-        const sortedTeams: any[] = []
-        for (const [_, team] of pairs( this.m_GatheredShuffledTeams )) {
-            table.insert( sortedTeams, { teamID: team, teamScore: GetTeamHeroKills( team ) } )
-        }
+        const sortedTeams: {teamID:number, teamScore: number}[] = []
+        this.m_GatheredShuffledTeams.forEach(team => {
+            sortedTeams.push( { teamID: team, teamScore: GetTeamHeroKills( team ) } )
+        })
 
         // reverse-sort by score
         table.sort( sortedTeams, (a,b) => { return ( a.teamScore > b.teamScore ) } )
 
-        for (const [_, t] of pairs( sortedTeams ) ){
+        sortedTeams.forEach(t=> {
             const clr = ColorForTeam( t.teamID )
 
             // Scaleform UI Scoreboard
@@ -423,7 +431,7 @@ export class Overthrow {
                 team_score: t.teamScore
             }
             CustomGameEventManager.Send_ServerToAllClients( "score_board", score )
-        }
+        })
         
         // Leader effects (moved from OnTeamKillCredit)
         const leader = sortedTeams[0].teamID
@@ -593,24 +601,28 @@ export class Overthrow {
             }
             case "item_treasure_chest":{
                 const hContainer = item.GetContainer()
-                /*
-                for k,v in pairs ( this.itemSpawnLocationsInUse ) ){
-                    if v.hDrop == hContainer {
-                        //print( '^^^DROP CONTAINER!' )
-                        if v.hItemDestinationRevealer {
-                            v.hItemDestinationRevealer:RemoveSelf()
-                            ParticleManager.DestroyParticle( v.nItemDestinationParticles, false )
+
+                //надо на нормальный for переписать, вместо return поставить break чтобы можно было
+                const func = () => {
+                this.itemSpawnLocationsInUse.forEach((v,k)=>{
+                    if (v.hDrop == hContainer){
+                        print( '^^^DROP CONTAINER!' )
+                        if (v.hItemDestinationRevealer != undefined) {
+                            v.hItemDestinationRevealer.RemoveSelf()
+                            if(v.nItemDestinationParticles != undefined){   
+                                ParticleManager.DestroyParticle( v.nItemDestinationParticles, false )
+                            }
                             DoEntFire( v.world_effects_name, "Stop", "0", 0, this, this )
                         }
-                        
-                        table.insert( this.itemSpawnLocations, v )
-                        table.remove( this.itemSpawnLocationsInUse, k )
-                        break
+                        this.itemSpawnLocations.push(v)
+                        this.itemSpawnLocationsInUse.splice(k, 1)
+                        return
                     }
+                })
                 }
-                */
+                func()
                 
-                this.SpecialItemAdd( event )// unimplemented
+                this.SpecialItemAdd( event )
     
                 break;
             }
@@ -681,102 +693,29 @@ export class Overthrow {
         }
         const hero = owner.GetClassname()
         const ownerTeam = owner.GetTeamNumber()
-        const sortedTeams: any[] = []
-        for (const [_, team] of  this.m_GatheredShuffledTeams ) {
+        const sortedTeams: {teamID:number, teamScore:number}[] = []
+        //print("SpecialItemAdd: ownerTeam " + ownerTeam)
+
+        this.m_GatheredShuffledTeams.forEach( (team) => {
+            //print("for team: "+team)
             sortedTeams.push({ teamID: team, teamScore: GetTeamHeroKills( team ) })
-        }
+        })
 
         //reverse-sort by score
-        sortedTeams.sort((a,b) => b-a)
+
+        sortedTeams.sort((a,b) => b.teamScore-a.teamScore)
         const leader = sortedTeams[0].teamID
-        const lastPlace = sortedTeams[sortedTeams.length].teamID
+        //print("SpecialItemAdd: leader " + leader)
+        const lastPlace = sortedTeams[sortedTeams.length-1].teamID
 
         const tableindex = 0
 
-        const tier1 = 
-        [
-            "item_keen_optic",				//
-            //"item_ocean_heart",			//!no water! 
-            "item_broom_handle",			//
-            "item_trusty_shovel",			//
-            "item_arcane_ring",				//
-            "item_chipped_vest",			//
-            "item_possessed_mask",			//
-            "item_mysterious_hat",			//fairy's trinket
-            "item_unstable_wand",			//pig pole
-            "item_pogo_stick",				//tumbler's toy
-        ]
 
-        const tier2 =
-        [
-            "item_ring_of_aquila",			//
-            "item_nether_shawl",			//
-            "item_dragon_scale",			//
-            "item_pupils_gift",				//
-            "item_vambrace",				//
-            "item_misericorde",				//brigand's blade
-            "item_grove_bow",				//
-            //"item_philosophers_stone",	//!game is not long enough for bonus gold to matter!
-            "item_essence_ring",			//
-            "item_paintball",				//fae grenade
-            "item_bullwhip",				//
-            "item_quicksilver_amulet",		//
-        ]
-
-        const tier3 =
-        [
-            "item_quickening_charm",		//
-            "item_black_powder_bag",		//blast rig
-            "item_spider_legs",				//
-            "item_paladin_sword",			//
-            "item_titan_sliver",			//
-            "item_mind_breaker",			//
-            "item_enchanted_quiver",		//
-            "item_elven_tunic",				//
-            "item_cloak_of_flames",			//
-            "item_ceremonial_robe",			//
-            "item_psychic_headband",		//
-        ]
-
-        const tier4 =
-        [
-            "item_timeless_relic",			//
-            "item_spell_prism",				//
-            "item_ascetic_cap",				//
-            "item_heavy_blade",				//witchbane
-            "item_flicker",					//
-            "item_ninja_gear",				//
-            "item_the_leveller",			//
-            "item_spy_gadget",				//telescope
-            "item_trickster_cloak",			//
-            "item_stormcrafter",			//
-            "item_penta_edged_sword",		//
-        ]
-
-        const tier5 =
-        [
-            "item_force_boots",				//
-            "item_desolator_2",				//
-            "item_seer_stone",				//
-            "item_mirror_shield",			//
-            "item_apex",					//
-            "item_demonicon",				//
-            "item_fallen_sky",				//
-            "item_force_field",				//arcanist's armor
-            "item_pirate_hat",				//
-            "item_ex_machina",				//
-            "item_giants_ring",				//
-            "item_book_of_shadows",			//
-        ]
-
-        const t1 = this.PickRandomShuffle( tier1, this.tier1ItemBucket )
-        const t2 = this.PickRandomShuffle( tier2, this.tier2ItemBucket )
-        const t3 = this.PickRandomShuffle( tier3, this.tier3ItemBucket )
-        const t4 = this.PickRandomShuffle( tier4, this.tier4ItemBucket )
-        const t5 = this.PickRandomShuffle( tier5, this.tier5ItemBucket )
-        
-        
-        
+        const t1 = this.PickRandomShuffle( GameConfig.t1BonusItems, this.tier1ItemBucket )
+        const t2 = this.PickRandomShuffle( GameConfig.t2BonusItems, this.tier2ItemBucket )
+        const t3 = this.PickRandomShuffle( GameConfig.t3BonusItems, this.tier3ItemBucket )
+        const t4 = this.PickRandomShuffle( GameConfig.t4BonusItems, this.tier4ItemBucket )
+        const t5 = this.PickRandomShuffle( GameConfig.t5BonusItems, this.tier5ItemBucket )
         
         
         let spawnedItem = ""
@@ -863,7 +802,8 @@ export class Overthrow {
     }
 
     PlanNextSpawn(){
-        if (this.itemSpawnLocations == undefined) {
+        print("PlanNextSpawn")
+        if (this.itemSpawnLocations == undefined || this.itemSpawnLocations.length ==0) {
             this.itemSpawnLocations = []
             this.itemSpawnLocationsInUse = []
             let nMaxSpawns = 8
@@ -878,7 +818,7 @@ export class Overthrow {
 
             for (let i=0; i < nMaxSpawns; i++) {
                 const spawnName = "item_spawn_" + i
-                //print( '^^^SEARCHING FOR SPAWN POINT NAMED = ' .. spawnName )
+                print( '^^^SEARCHING FOR SPAWN POINT NAMED = ' + spawnName )
                 const hSpawnLocation = Entities.FindByName( undefined, spawnName )
                 if (hSpawnLocation == undefined ){
                     print( '^^^MISSING SPAWN LOCATION = ' + spawnName )
@@ -889,6 +829,9 @@ export class Overthrow {
                         hSpawnLocation: hSpawnLocation,
                         path_track_name: "item_spawn_" + i,
                         world_effects_name: "item_spawn_particle_" + i,
+                        hDrop: undefined,
+                        hItemDestinationRevealer: undefined,
+                        nItemDestinationParticles: undefined
                     }
                     this.itemSpawnLocations[i] = newSpawnLocation
                 }
@@ -897,14 +840,14 @@ export class Overthrow {
         
 
         if (this.itemSpawnLocations.length <= 0) {
-            //print( 'RAN OUT OF SPAWN LOCATIONS!' )
+            print( 'RAN OUT OF SPAWN LOCATIONS!' )
             return false
         }
 
         const r = RandomInt( 0, this.itemSpawnLocations.length-1 )
         const spawnPoint = this.itemSpawnLocations[r]
-        table.remove( this.itemSpawnLocations, r )
-        table.insert( this.itemSpawnLocationsInUse, spawnPoint )
+        this.itemSpawnLocations.splice(r, 1)
+        this.itemSpawnLocationsInUse.push( spawnPoint )
 
         this.hCurrentItemSpawnLocation = spawnPoint
 
@@ -912,11 +855,15 @@ export class Overthrow {
     }
 
     WarnItem(){
+        print("WarnItem")
         //find the spawn point
         if (!this.PlanNextSpawn()) {
             return false
         }
-        
+        if(this.hCurrentItemSpawnLocation == undefined){
+            print("WarnItem: this.hCurrentItemSpawnLocation undefined")
+            return
+        }
         const spawnLocation = this.hCurrentItemSpawnLocation.hSpawnLocation.GetAbsOrigin();
 
         //notify everyone
@@ -935,6 +882,7 @@ export class Overthrow {
     }
 
     SpawnItem(){
+        print("SpawnItem")
         //notify everyone
         CustomGameEventManager.Send_ServerToAllClients( "item_has_spawned", {})
         EmitGlobalSound( "Overthrow.Item.Spawn" )
@@ -949,6 +897,10 @@ export class Overthrow {
         }
         treasureAbility.SetLevel( 1 )
     //print ("Spawning Treasure")
+        if(this.hCurrentItemSpawnLocation == undefined){
+            print("SpawnItem: this.hCurrentItemSpawnLocation undefined")
+            return
+        }
         treasureCourier.SetInitialGoalEntity( this.hCurrentItemSpawnLocation.hSpawnLocation )
     //const particleTreasure = ParticleManager.CreateParticle( "particles/items_fx/black_king_bar_avatar.vpcf", PATTACH_ABSORIGIN, treasureCourier )
         //ParticleManager.SetParticleControlEnt( particleTreasure, PATTACH_ABSORIGIN, treasureCourier, PATTACH_ABSORIGIN, "attach_origin", treasureCourier:GetAbsOrigin(), true )
@@ -978,8 +930,18 @@ export class Overthrow {
         knockBackUnits.forEach((unit) => unit.AddNewModifier(unit, undefined, "modifier_knockback", modifierKnockback ))
     }
 
-    TreasureDrop( treasureCourier : CDOTA_BaseNPC) : void{
+    //------------------------------------------------------------------------------
+// Event: OnNpcGoalReached
+//------------------------------------------------------------------------------
+    OnNpcGoalReached( event : DotaNpcGoalReachedEvent){
+        const npc = EntIndexToHScript( event.npc_entindex ) as  CDOTA_BaseNPC
+        if (npc.GetUnitName() == "npc_dota_treasure_courier") {
+            this.TreasureDrop( npc )
+        }
+    }
 
+    TreasureDrop( treasureCourier : CDOTA_BaseNPC) : void{
+        print("TreasureDrop")
         //Destroy vision revealer
         this.hItemDestinationRevealer?.RemoveSelf()
         if(this.nItemDestinationParticles != undefined){
@@ -1012,11 +974,19 @@ export class Overthrow {
         drop.SetForwardVector( treasureCourier.GetRightVector() ) //oriented differently
         newItem.LaunchLootInitialHeight( false, 0, 50, 0.25, spawnPoint )
 
+        if(this.hCurrentItemSpawnLocation == undefined){
+            print("TreasureDrop: this.hCurrentItemSpawnLocation undefined")
+            return
+        }
+
         this.hCurrentItemSpawnLocation.hDrop = drop
 
-        //print( '^^^ITEM SPAWN LOCATIONS' )
+        print( '^^^ITEM SPAWN LOCATIONS' )
+        let temp = ""
+        //this.itemSpawnLocations.forEach((v)=>temp+=v.)
+        print(this.itemSpawnLocations)
         //PrintTable( this.itemSpawnLocations )
-        //print( '^^^ITEM SPAWN LOCATIONS IN USE' )
+        print( '^^^ITEM SPAWN LOCATIONS IN USE' )
         //PrintTable( this.itemSpawnLocationsInUse )
 
         //Stop the particle effect
