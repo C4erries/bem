@@ -1,20 +1,14 @@
-import { ColorForTeam } from "./Teams";
+import { ExecuteOrderFilter } from "./OverthrowEvents";
+import { OverthrowSpawnItem } from "./OverthrowSpawnItem";
+import { AssignTeams, ColorForTeam } from "./Teams";
 import { AddVector } from "./Utility";
 import { Config } from "./Config";
-import { GameConfig } from "./GameConfig";
 
 
-
-declare interface SpawnLocation{
-    hSpawnLocation: CBaseEntity,
-    path_track_name: string,
-    world_effects_name: string,
-    hDrop: CDOTA_Item_Physical | undefined,
-    hItemDestinationRevealer: CDOTA_BaseNPC | undefined,
-    nItemDestinationParticles: ParticleID | undefined,
-}
 
 export class Overthrow {
+
+    private overthrowSpawnItem = new OverthrowSpawnItem()
 
     public KILLS_TO_WIN_SINGLES:number = Config.KILLS_TO_WIN_SINGLES
     public KILLS_TO_WIN_DUOS:number = Config.KILLS_TO_WIN_DUOS
@@ -36,26 +30,11 @@ export class Overthrow {
     public _fPreGameStartTime:number = Config.PRE_GAME_START_TIME;
     public numSpawnCamps:number = 5;
 
-    tier1ItemBucket: string[] = []
-	tier2ItemBucket: string[] = []
-	tier3ItemBucket: string[] = []
-	tier4ItemBucket: string[] = []
-	tier5ItemBucket: string[] = []
-    nNextSpawnItemNumber: number = 1;
-    nMaxItemSpawns: number = 30;
-    spawnTime: number = 60;
-    warnTime: number = 7;
-    hasWarnedSpawn: boolean = false;
-    itemSpawnLocations: SpawnLocation[] = [];
-    itemSpawnLocationsInUse: SpawnLocation[]  = [];
-    itemSpawnLocation = Entities.FindByName( undefined, "greevil" )
-    itemSpawnIndex: number = 1;
-    hCurrentItemSpawnLocation: SpawnLocation | undefined;
-    hItemDestinationRevealer: CDOTA_BaseNPC | undefined;
-    nItemDestinationParticles: ParticleID | undefined;
 
-
-    constructor(){
+    constructor(GatheredShuffledTeams : number[]){
+        this.m_GatheredShuffledTeams = GatheredShuffledTeams
+        this.SetUpFountains()  
+        
         this.m_VictoryMessages.set(DotaTeam.GOODGUYS, "#VictoryMessage_GoodGuys");
         this.m_VictoryMessages.set(DotaTeam.BADGUYS, "#VictoryMessage_BadGuys");
         this.m_VictoryMessages.set(DotaTeam.CUSTOM_1, "#VictoryMessage_Custom1");
@@ -67,153 +46,13 @@ export class Overthrow {
         this.m_VictoryMessages.set(DotaTeam.CUSTOM_7, "#VictoryMessage_Custom7");
         this.m_VictoryMessages.set(DotaTeam.CUSTOM_8, "#VictoryMessage_Custom8");
 
-        this.SetUpFountains()  
-
-
         this.CustomSpawnCamps()
 	
         ListenToGameEvent( "dota_npc_goal_reached", this.OnNpcGoalReached, this )
-        GameRules.GetGameModeEntity().SetExecuteOrderFilter( (event) => this.ExecuteOrderFilter(event), this)
+        GameRules.GetGameModeEntity().SetExecuteOrderFilter( (event) => ExecuteOrderFilter(event), this)
     }
 
-    public ShuffledList<Type>( orig_list : Type[] ): Type[]{
-        const list = orig_list.slice() // копируем список
-        const result: Type[] = [] // результат
-        const count = list.length
-        let t : string = ""
-        //list.forEach( (v, i) => print("ShuffledList: list.foreach: value: " + v + " index " + i))
-        for(const i of $range(0, count-1)) { // [0, count-1] включительно короче
-            const pick = RandomInt( 0, list.length-1 )
-            result.push(list[ pick ])
-            t += list[ pick ] + ","
-            list.splice(pick, 1)
-        }
-        //print( "Picked teams: length = " + result.length + " elements: " + t )
-        return result
-    }
-    // Хуйня какая-то, переделать!(для других карт хз как работет)
-    public GatherAndRegisterValidTeams(){
-        
-    //print( "GatherValidTeams:" )
-
-        const foundTeams = new Set<number>()// список ключ - id команды
-        for(const playerStart of Entities.FindAllByClassname( "info_player_start_dota")){
-            foundTeams.add(playerStart.GetTeamNumber())
-            //print("FoundTeams adding " + playerStart.GetTeamNumber().toString() + " " + GetTeamName(playerStart.GetTeam()))
-        }
-        //print(foundTeams.length)
-
-        ///print( "GatherValidTeams - Found spawns for(a total of " +  numTeams  + " teams" )
-
-        const foundTeamsList: number[] = []
-        print( this.m_VictoryMessages.get(0), this.m_VictoryMessages.get(1))
-        foundTeams.forEach( (v,i,o) => {
-            //если команда с таким id существует (team), как признак у нее есть victory message
-            if(this.m_VictoryMessages.get(v)!=undefined){
-                table.insert( foundTeamsList, v)
-               // print( "FoundTeams.ForEach: " + tostring(v) + " " + this.m_VictoryMessages.get(v))
-            }
-
-        })
-        //print("FoundTeams.length = " + tostring(foundTeamsList.length) )
-
-        /*
-        for(const [t, _] of pairs( foundTeams ) ){
-            table.insert( foundTeamsList, t )
-            print("FoundTeamList creation: Team Adding  " + t.toString() + (this.m_VictoryMessages[t]!=undefined?this.m_VictoryMessages[t]:"victory message undefined"))
-        }
-        */
-        let numTeams = foundTeamsList.length
-        //print("FoundTeamList.length = " + foundTeamsList.length)
-
-        if (numTeams == 0) {
-           // print( "GatherValidTeams - NO team spawns detected, defaulting to GOOD/BAD" )
-            table.insert( foundTeamsList, DotaTeam.GOODGUYS )
-            table.insert( foundTeamsList, DotaTeam.BADGUYS )
-            numTeams = 2
-        }
-
-        const maxPlayersPerValidTeam = math.floor( 10 / numTeams )
-       // print("maxPlayersPerValidTeam = " + tostring(maxPlayersPerValidTeam) + " numteams = " + numTeams)
-        this.m_GatheredShuffledTeams = this.ShuffledList( foundTeamsList )
-
-        /*
-        print( "Final shuffled team list:" )
-        for (const [_, team] of pairs( this.m_GatheredShuffledTeams )) {
-            print( " - " + team + " "  + GetTeamName( team ))
-        } 
-        */
-
-        //print( "Setting up teams:" )
-
-        for(const team  of $range(0, (DOTA_TEAM_COUNT-1) )){
-            GameRules.SetCustomGameTeamMaxPlayers( team, 0  )
-        }
-        for(let i = 0; i < numTeams; i++) {
-            //print( " - " + this.m_GatheredShuffledTeams[i] + "  " + GetTeamName( this.m_GatheredShuffledTeams[i] ) + " max players = " + tostring(maxPlayersPerValidTeam) )
-            GameRules.SetCustomGameTeamMaxPlayers( this.m_GatheredShuffledTeams[i], maxPlayersPerValidTeam )
-        }
-    }
-
-    public AssignTeams(){
-        //print( "Assigning teams" )
-        const vecTeamValid : boolean[] = []
-        const vecTeamNeededPlayers : number[] = []
-        for (let nTeam = 0; nTeam < DOTA_TEAM_COUNT; nTeam++) {
-            const nMax = GameRules.GetCustomGameTeamMaxPlayers( nTeam )
-            if (nMax > 0) {
-                //print( "Found team " .. nTeam .. " with max players " .. nMax )
-                vecTeamNeededPlayers[ nTeam ] = nMax
-                vecTeamValid[ nTeam ] = true
-            } else {
-                vecTeamValid[ nTeam ] = false
-            }
-        }
-
-        //loop 1: count up players on each team
-        const hPlayers : PlayerID[]= []
-        for (let nPlayerID = 0; nPlayerID < DOTA_MAX_TEAM_PLAYERS; nPlayerID++) {
-            if (PlayerResource.IsValidPlayerID( nPlayerID )) {
-                let nTeam = PlayerResource.GetTeam( nPlayerID )
-                if (!vecTeamValid[ nTeam ]) {
-                    nTeam = PlayerResource.GetCustomTeamAssignment( nPlayerID )
-                }
-                //print( "Found player " .. nPlayerID .. " on team " .. nTeam )
-                if (vecTeamValid[ nTeam ]) {
-                    vecTeamNeededPlayers[ nTeam ] = vecTeamNeededPlayers[ nTeam ] - 1
-                } else {
-                    hPlayers.push( nPlayerID )
-                }
-            }
-        }
-
-        //loop 2: assign players. For each player who is on an invalid team,
-        //find the team that has the highest number of needed players
-        //&& assign the player to that team
-        hPlayers.forEach( (nPlayerID, _) =>  {
-            //print( "Finding team for player " .. nPlayerID )
-            let nTeamNumber = -1
-            let nHighest = 0
-            for (let nTeam = 0; nTeam < DOTA_TEAM_COUNT; nTeam++) {
-                if (vecTeamValid[ nTeam ]) {
-                    const nVal = vecTeamNeededPlayers[ nTeam ]
-                    if (nVal > nHighest) {
-                        //print( "found team " .. nTeam .. " with needed " .. nVal .. " but highest was only " .. nHighest )
-                        nHighest = nVal
-                        nTeamNumber = nTeam
-                    }
-                }
-            }
-            if (nTeamNumber > 0) {
-                PlayerResource.SetCustomTeamAssignment( nPlayerID , nTeamNumber )
-                vecTeamNeededPlayers[ nTeamNumber ] = vecTeamNeededPlayers[ nTeamNumber ] - 1
-            }
-        })
-            
-        if (this.m_bFillWithBots) {
-            GameRules.BotPopulate()
-        }
-    }
+    
     private SetUpFountains(): void{
 
         LinkLuaModifier( "modifier_fountain_aura_lua", "modifier_fountain_aura_lua.lua", LuaModifierMotionType.NONE)
@@ -227,7 +66,7 @@ export class Overthrow {
         }
     }
 
-//////---------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Event: Game state change handler
 //-------------------------------------------------------------------------
     public OnGameRulesStateChange(){
@@ -235,7 +74,7 @@ export class Overthrow {
         //print( "OnGameRulesStateChange: " .. nNewState )
 
         if (nNewState == GameState.HERO_SELECTION ) {
-            this.AssignTeams()
+            AssignTeams(this.m_bFillWithBots)
         } else if (nNewState == GameState.PRE_GAME) {
             const numberOfPlayers = PlayerResource.GetPlayerCount()
             if ( numberOfPlayers > 7 ) {
@@ -284,92 +123,9 @@ export class Overthrow {
             GameRules.GetGameModeEntity().SetAnnouncerDisabled( true )// Disable the normal announcer at game start
         }
     }
-    //------------------------------------------------------------------------------
-    // Event: BountyRunePickupFilter
-    //------------------------------------------------------------------------------
-    public BountyRunePickupFilter( filterTable : BountyRunePickupFilterEvent ) : boolean{
-        filterTable.xp_bounty = 2*filterTable.xp_bounty
-        filterTable.gold_bounty = 2*filterTable.gold_bounty
-        return true
-    }
 
-    public ExecuteOrderFilter( filterTable : ExecuteOrderFilterEvent ) : boolean{
-	/*
-	for k, v in pairs( filterTable ) {
-		print("EO: " .. k .. " " .. tostring(v) )
-	}
-	*/
 
-        const orderType = filterTable.order_type 
-        if ( orderType != UnitOrder.PICKUP_ITEM || filterTable.issuer_player_id_const == -1 ){
-            return true
-        }
-        else {
-            const item = EntIndexToHScript(filterTable.entindex_target) as CDOTA_Item_Physical
-            if (item == undefined) {
-                return true
-            }
-            const pickedItem = item.GetContainedItem()
-
-            //print(pickedItem.GetAbilityName())
-            if (pickedItem == undefined) {
-                return true
-            }
-            switch(pickedItem.GetAbilityName()){
-                case "item_bag_of_gold":{
-                    const hero = EntIndexToHScript(filterTable.units["0"]) as CDOTA_BaseNPC_Hero
-                    if(hero == undefined || !hero.IsRealHero())
-                        return false;
-                    break;
-                }
-                case "item_treasure_chest":{
-                    const player = PlayerResource.GetPlayer(filterTable.issuer_player_id_const)
-                    if(player==undefined){
-                        return true
-                    }
-                    const hero = player.GetAssignedHero()
-                    
-                    // determine if we can scoop the neutral or not
-                    // we need either a free backpack slot or a free neutral item slot
-                    let bAllowPickup = false
-                    const hNeutralItem = hero.GetItemInSlot(16) // InventorySlot.NEUTRAL_SLOT -- не работает почему-то, на практике ровно nil а не 16
-                    if (hNeutralItem == undefined) {
-                        bAllowPickup = true
-                        //print( '^^^Empty neutral slot!' )
-                    }
-                    else {
-                        let numBackpackItems = 0
-                        for (let nItemSlot = 0; nItemSlot < DOTA_ITEM_INVENTORY_SIZE; nItemSlot++) {
-                            const hItem = hero.GetItemInSlot( nItemSlot ) // index zero based
-                            if (hItem && hItem.IsInBackpack()) {
-                                numBackpackItems = numBackpackItems + 1
-                            }
-                        }
-                        //print( '^^^Backpack slots = ' .. numBackpackItems )
-                        if (numBackpackItems < 3) {
-                            bAllowPickup = true
-                        }
-                    }		
-
-                    if (bAllowPickup) {
-                        //print("inventory has space")
-                        return true
-                    }
-                    else {
-                        //print("Moving to target instead")
-                        const position = item.GetAbsOrigin()
-                        filterTable.position_x = position.x
-                        filterTable.position_y = position.y
-                        filterTable.position_z = position.z
-                        filterTable.order_type = UnitOrder.MOVE_TO_POSITION 
-                        return true
-                    }
-                    break;
-                }
-            }
-        }
-        return true
-    }
+    
 
     CustomSpawnCamps(){
         for (let i = 1; i <= this.numSpawnCamps; i++ ){
@@ -549,7 +305,7 @@ export class Overthrow {
         if (GameRules.State_Get() == GameState.GAME_IN_PROGRESS) {
             //Spawn Gold Bags
             this.ThinkGoldDrop()
-            this.ThinkSpecialItemDrop()
+            this.overthrowSpawnItem.ThinkSpecialItemDrop()
         }
         return 1
     }
@@ -573,7 +329,7 @@ export class Overthrow {
         } else { 
             this.SpawnGoldEntity(Vector(0, 0, 0));
         }
-}
+    }
 
 
     public SetTimer(): void{
@@ -600,30 +356,7 @@ export class Overthrow {
                 break;
             }
             case "item_treasure_chest":{
-                const hContainer = item.GetContainer()
-
-                //надо на нормальный for переписать, вместо return поставить break чтобы можно было
-                const func = () => {
-                this.itemSpawnLocationsInUse.forEach((v,k)=>{
-                    if (v.hDrop == hContainer){
-                        print( '^^^DROP CONTAINER!' )
-                        if (v.hItemDestinationRevealer != undefined) {
-                            v.hItemDestinationRevealer.RemoveSelf()
-                            if(v.nItemDestinationParticles != undefined){   
-                                ParticleManager.DestroyParticle( v.nItemDestinationParticles, false )
-                            }
-                            DoEntFire( v.world_effects_name, "Stop", "0", 0, this, this )
-                        }
-                        this.itemSpawnLocations.push(v)
-                        this.itemSpawnLocationsInUse.splice(k, 1)
-                        return
-                    }
-                })
-                }
-                func()
-                
-                this.SpecialItemAdd( event )
-    
+                this.overthrowSpawnItem.OnTreasureChestPickedUp(event)
                 break;
             }
         }
@@ -672,336 +405,29 @@ export class Overthrow {
 
         GameRules.SetGameWinner( victoryTeam )
     }
-    PickRandomShuffle<Type>( reference_list : Type[], bucket : Type[]) : Type{
-        if ( bucket.length == 0 ) {
-            // ran out of options, refill the bucket from the reference
-            reference_list.forEach((v,k) => bucket[k] = v)
-        }
-
-        // pick a value from the bucket and remove it
-        const pick_index = RandomInt( 0, bucket.length-1 )
-        const result = bucket[ pick_index ]
-        bucket.splice(pick_index, 1)
-        return result
-    }
-    SpecialItemAdd( event : DotaItemPickedUpEvent){
-        const item = EntIndexToHScript( event.ItemEntityIndex )
-        const owner = EntIndexToHScript( event.HeroEntityIndex ) as CDOTA_BaseNPC_Hero
-        if(owner == undefined){
-            print("SpecialItemAdd owner undefined")
-            return
-        }
-        const hero = owner.GetClassname()
-        const ownerTeam = owner.GetTeamNumber()
-        const sortedTeams: {teamID:number, teamScore:number}[] = []
-        //print("SpecialItemAdd: ownerTeam " + ownerTeam)
-
-        this.m_GatheredShuffledTeams.forEach( (team) => {
-            //print("for team: "+team)
-            sortedTeams.push({ teamID: team, teamScore: GetTeamHeroKills( team ) })
-        })
-
-        //reverse-sort by score
-
-        sortedTeams.sort((a,b) => b.teamScore-a.teamScore)
-        const leader = sortedTeams[0].teamID
-        //print("SpecialItemAdd: leader " + leader)
-        const lastPlace = sortedTeams[sortedTeams.length-1].teamID
-
-        const tableindex = 0
-
-
-        const t1 = this.PickRandomShuffle( GameConfig.t1BonusItems, this.tier1ItemBucket )
-        const t2 = this.PickRandomShuffle( GameConfig.t2BonusItems, this.tier2ItemBucket )
-        const t3 = this.PickRandomShuffle( GameConfig.t3BonusItems, this.tier3ItemBucket )
-        const t4 = this.PickRandomShuffle( GameConfig.t4BonusItems, this.tier4ItemBucket )
-        const t5 = this.PickRandomShuffle( GameConfig.t5BonusItems, this.tier5ItemBucket )
-        
-        
-        let spawnedItem = ""
-
-        //pick the item we're giving them
-        const nLeaderKills = GetTeamHeroKills( leader )
-
-        if (nLeaderKills <= 5) {
-            spawnedItem = t1
-        }
-        else if (nLeaderKills > 5 && nLeaderKills <= 13) {
-            if (ownerTeam == leader && ( this.leadingTeamScore - this.runnerupTeamScore > 3 )) {
-                spawnedItem = t1
-            }
-            else if (ownerTeam == lastPlace) {
-                spawnedItem = t3
-            }
-            else{
-                spawnedItem = t2
-            }
-        }
-        else if (nLeaderKills > 13 && nLeaderKills <= 21) {
-            if (ownerTeam == leader && ( this.leadingTeamScore - this.runnerupTeamScore > 3 )) {
-                spawnedItem = t2
-            }
-            else if (ownerTeam == lastPlace) {
-                spawnedItem = t4
-            }
-            else{
-                spawnedItem = t3
-            }
-        }
-        else if (nLeaderKills > 21) {
-            if (ownerTeam == leader && ( this.leadingTeamScore - this.runnerupTeamScore > 3 )) {
-                spawnedItem = t3
-            }
-            else if (ownerTeam == lastPlace) {
-                spawnedItem = t5
-            }
-            else{
-                spawnedItem = t4
-            }
-        }
-
-        //add the item to the inventory && broadcast
-        owner.AddItemByName( spawnedItem )
-        EmitGlobalSound("Overthrow.Item.Claimed")
-        const overthrow_item_drop =
-        {
-            hero_id: hero,
-            dropped_item: spawnedItem
-        }
-        CustomGameEventManager.Send_ServerToAllClients( "overthrow_item_drop", overthrow_item_drop )
-    }
-
-    ThinkSpecialItemDrop(){
-        //Stop spawning items after the maximum amount
-        if (this.nNextSpawnItemNumber >= this.nMaxItemSpawns) {
-            return
-        }
-        //Don't spawn if the game is about to }
-        if (nCOUNTDOWNTIMER < 20) {
-            return
-        }
-        const t = GameRules.GetDOTATime( false, false )
-        const tSpawn = ( this.spawnTime * this.nNextSpawnItemNumber )
-        const tWarn = tSpawn - this.warnTime
-        
-        if (!this.hasWarnedSpawn && t >= tWarn) {
-            //warn the item is about to spawn
-            //we might fail to reserve a spot in which case we'll just skip && move on to the next spawn
-            if (!this.WarnItem()) {
-                this.nNextSpawnItemNumber = this.nNextSpawnItemNumber + 1
-                return
-            }
-            this.hasWarnedSpawn = true
-        }
-        else if (t >= tSpawn) {
-            //spawn the item
-            this.SpawnItem()
-            this.nNextSpawnItemNumber = this.nNextSpawnItemNumber + 1
-            this.hasWarnedSpawn = false
-        }
-    }
-
-    PlanNextSpawn(){
-        print("PlanNextSpawn")
-        if (this.itemSpawnLocations == undefined || this.itemSpawnLocations.length ==0) {
-            this.itemSpawnLocations = []
-            this.itemSpawnLocationsInUse = []
-            let nMaxSpawns = 8
-            if (GetMapName() == "desert_quintet") {
-                print("map is desert_quintet")
-                nMaxSpawns = 6
-            }
-            else if (GetMapName() == "temple_quartet") {
-                print("map is temple_quartet")
-                nMaxSpawns = 4
-            }
-
-            for (let i=0; i < nMaxSpawns; i++) {
-                const spawnName = "item_spawn_" + i
-                print( '^^^SEARCHING FOR SPAWN POINT NAMED = ' + spawnName )
-                const hSpawnLocation = Entities.FindByName( undefined, spawnName )
-                if (hSpawnLocation == undefined ){
-                    print( '^^^MISSING SPAWN LOCATION = ' + spawnName )
-                }
-                else{
-                    const newSpawnLocation =
-                    {
-                        hSpawnLocation: hSpawnLocation,
-                        path_track_name: "item_spawn_" + i,
-                        world_effects_name: "item_spawn_particle_" + i,
-                        hDrop: undefined,
-                        hItemDestinationRevealer: undefined,
-                        nItemDestinationParticles: undefined
-                    }
-                    this.itemSpawnLocations[i] = newSpawnLocation
-                }
-            }
-        }
-        
-
-        if (this.itemSpawnLocations.length <= 0) {
-            print( 'RAN OUT OF SPAWN LOCATIONS!' )
-            return false
-        }
-
-        const r = RandomInt( 0, this.itemSpawnLocations.length-1 )
-        const spawnPoint = this.itemSpawnLocations[r]
-        this.itemSpawnLocations.splice(r, 1)
-        this.itemSpawnLocationsInUse.push( spawnPoint )
-
-        this.hCurrentItemSpawnLocation = spawnPoint
-
-        return true
-    }
-
-    WarnItem(){
-        print("WarnItem")
-        //find the spawn point
-        if (!this.PlanNextSpawn()) {
-            return false
-        }
-        if(this.hCurrentItemSpawnLocation == undefined){
-            print("WarnItem: this.hCurrentItemSpawnLocation undefined")
-            return
-        }
-        const spawnLocation = this.hCurrentItemSpawnLocation.hSpawnLocation.GetAbsOrigin();
-
-        //notify everyone
-        CustomGameEventManager.Send_ServerToAllClients( "item_will_spawn", { spawn_location:  spawnLocation } )
-        EmitGlobalSound( "Overthrow.Item.Warning" )
-        
-        //fire the destination particles
-        DoEntFire( this.hCurrentItemSpawnLocation.world_effects_name, "Start", "0", 0, this, this )
-
-        //Give vision to the spawn area (unit is on goodguys, but shared vision)
-        this.hItemDestinationRevealer = CreateUnitByName( "npc_vision_revealer", spawnLocation, false, undefined, undefined, DotaTeam.GOODGUYS )
-        this.nItemDestinationParticles = ParticleManager.CreateParticle( "particles/econ/wards/f2p/f2p_ward/f2p_ward_true_sight_ambient.vpcf", ParticleAttachment.ABSORIGIN, this.hItemDestinationRevealer )
-        ParticleManager.SetParticleControlEnt( this.nItemDestinationParticles, ParticleAttachment.ABSORIGIN, this.hItemDestinationRevealer, ParticleAttachment.ABSORIGIN, "attach_origin", this.hItemDestinationRevealer.GetAbsOrigin(), true )
-
-        return true
-    }
-
-    SpawnItem(){
-        print("SpawnItem")
-        //notify everyone
-        CustomGameEventManager.Send_ServerToAllClients( "item_has_spawned", {})
-        EmitGlobalSound( "Overthrow.Item.Spawn" )
-
-        //spawn the item
-        const startLocation = Vector( 0, 0, 700 )
-        const treasureCourier = CreateUnitByName( "npc_dota_treasure_courier" , startLocation, true, undefined, undefined, DotaTeam.NEUTRALS )
-        const treasureAbility = treasureCourier.FindAbilityByName( "dota_ability_treasure_courier" )
-        if(treasureAbility == undefined){
-            print("treasureAbility undefined")
-            return
-        }
-        treasureAbility.SetLevel( 1 )
-    //print ("Spawning Treasure")
-        if(this.hCurrentItemSpawnLocation == undefined){
-            print("SpawnItem: this.hCurrentItemSpawnLocation undefined")
-            return
-        }
-        treasureCourier.SetInitialGoalEntity( this.hCurrentItemSpawnLocation.hSpawnLocation )
-    //const particleTreasure = ParticleManager.CreateParticle( "particles/items_fx/black_king_bar_avatar.vpcf", PATTACH_ABSORIGIN, treasureCourier )
-        //ParticleManager.SetParticleControlEnt( particleTreasure, PATTACH_ABSORIGIN, treasureCourier, PATTACH_ABSORIGIN, "attach_origin", treasureCourier:GetAbsOrigin(), true )
-        //treasureCourier:Attribute_SetIntValue( "particleID", particleTreasure )
-    }
-
-    ForceSpawnItem(){
-        if (this.WarnItem()) {
-            this.SpawnItem()
-        }
-    }
-
-    KnockBackFromTreasure( center : Vector, radius : number, knockback_duration : number, knockback_distance : number, knockback_height : number ){
-        const targetType = bit.bor( UnitTargetType.CREEP, UnitTargetType.HERO )
-        const knockBackUnits = FindUnitsInRadius( DotaTeam.NOTEAM, center, undefined, radius, UnitTargetTeam.BOTH , targetType, UnitTargetFlags.NONE, FindOrder.ANY, false )
     
-        const modifierKnockback =
-        {
-            center_x: center.x,
-            center_y: center.y,
-            center_z: center.z,
-            duration: knockback_duration,
-            knockback_duration: knockback_duration,
-            knockback_distance: knockback_distance,
-            knockback_height: knockback_height,
-        }
-        knockBackUnits.forEach((unit) => unit.AddNewModifier(unit, undefined, "modifier_knockback", modifierKnockback ))
+    //------------------------------------------------------------------------------
+    // Event: BountyRunePickupFilter
+    //------------------------------------------------------------------------------
+    public BountyRunePickupFilter( filterTable : BountyRunePickupFilterEvent ) : boolean{
+        filterTable.xp_bounty = 2*filterTable.xp_bounty
+        filterTable.gold_bounty = 2*filterTable.gold_bounty
+        return true
     }
 
     //------------------------------------------------------------------------------
-// Event: OnNpcGoalReached
-//------------------------------------------------------------------------------
-    OnNpcGoalReached( event : DotaNpcGoalReachedEvent){
+    // Event: OnNpcGoalReached
+    //------------------------------------------------------------------------------
+    public OnNpcGoalReached( event : DotaNpcGoalReachedEvent){
         const npc = EntIndexToHScript( event.npc_entindex ) as  CDOTA_BaseNPC
         if (npc.GetUnitName() == "npc_dota_treasure_courier") {
-            this.TreasureDrop( npc )
+            this.overthrowSpawnItem.TreasureDrop( npc )
         }
     }
 
-    TreasureDrop( treasureCourier : CDOTA_BaseNPC) : void{
-        print("TreasureDrop")
-        //Destroy vision revealer
-        this.hItemDestinationRevealer?.RemoveSelf()
-        if(this.nItemDestinationParticles != undefined){
-            ParticleManager.DestroyParticle( this.nItemDestinationParticles, false )
-        }
-
-        //Create the death effect for the courier
-        const treasureCourierInitialGoalEntity = treasureCourier.GetInitialGoalEntity() 
-        if(treasureCourierInitialGoalEntity == undefined){
-            print("TreasureDrop treasureCourier.GetInitialGoalEntity() undefined")
-            return
-        }
-        const spawnPoint = treasureCourierInitialGoalEntity.GetAbsOrigin()
-        spawnPoint.z = 400
-        const fxPoint = treasureCourierInitialGoalEntity.GetAbsOrigin()
-        fxPoint.z = 400
-        const deathEffects = ParticleManager.CreateParticle( "particles/treasure_courier_death.vpcf", ParticleAttachment.CUSTOMORIGIN, undefined)
-        ParticleManager.SetParticleControl( deathEffects, 0, fxPoint )
-        ParticleManager.SetParticleControlOrientation( deathEffects, 0, treasureCourier.GetForwardVector(), treasureCourier.GetRightVector(), treasureCourier.GetUpVector() )
-        EmitGlobalSound( "lockjaw_Courier.Impact" )
-        EmitGlobalSound( "lockjaw_Courier.gold_big" )
-
-        //Spawn the treasure chest at the selected item spawn location
-        const newItem = CreateItem( "item_treasure_chest", undefined, undefined )
-        if(newItem == undefined){
-            print("TreasureDrop undefined")
-            return
-        }
-        const drop = CreateItemOnPositionForLaunch( spawnPoint, newItem )
-        drop.SetForwardVector( treasureCourier.GetRightVector() ) //oriented differently
-        newItem.LaunchLootInitialHeight( false, 0, 50, 0.25, spawnPoint )
-
-        if(this.hCurrentItemSpawnLocation == undefined){
-            print("TreasureDrop: this.hCurrentItemSpawnLocation undefined")
-            return
-        }
-
-        this.hCurrentItemSpawnLocation.hDrop = drop
-
-        print( '^^^ITEM SPAWN LOCATIONS' )
-        let temp = ""
-        //this.itemSpawnLocations.forEach((v)=>temp+=v.)
-        print(this.itemSpawnLocations)
-        //PrintTable( this.itemSpawnLocations )
-        print( '^^^ITEM SPAWN LOCATIONS IN USE' )
-        //PrintTable( this.itemSpawnLocationsInUse )
-
-        //Stop the particle effect
-        DoEntFire( "item_spawn_particle_" + this.itemSpawnIndex, "stopplayendcap", "0", 0, this, this )
-
-        //Knock people back from the treasure
-        this.KnockBackFromTreasure( spawnPoint, 375, 0.25, 400.1, 100 )
-            
-        //Destroy the courier
-        UTIL_Remove( treasureCourier )
-
-        //create the minimap/revealer for the treasure now that it's on the ground
-        //this one is attached to the table of data for the spawn location so we can clean it up when the treasure is picked up
-        this.hCurrentItemSpawnLocation.hItemDestinationRevealer = CreateUnitByName( "npc_treasure_revealer", this.hCurrentItemSpawnLocation.hSpawnLocation.GetAbsOrigin(), false, undefined, undefined, DotaTeam.GOODGUYS )
-        this.hCurrentItemSpawnLocation.nItemDestinationParticles = ParticleManager.CreateParticle( "particles/econ/wards/f2p/f2p_ward/f2p_ward_true_sight_ambient.vpcf", ParticleAttachment.ABSORIGIN, this.hCurrentItemSpawnLocation.hItemDestinationRevealer )
-        ParticleManager.SetParticleControlEnt( this.hCurrentItemSpawnLocation.nItemDestinationParticles, ParticleAttachment.ABSORIGIN, this.hCurrentItemSpawnLocation.hItemDestinationRevealer, ParticleAttachment.ABSORIGIN, "attach_origin", this.hCurrentItemSpawnLocation.hItemDestinationRevealer.GetAbsOrigin(), true )
+    public ForceSpawnItem(){
+        this.overthrowSpawnItem.ForceSpawnItem()
     }
+
+    
 }
