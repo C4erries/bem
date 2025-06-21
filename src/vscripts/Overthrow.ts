@@ -79,7 +79,7 @@ export class Overthrow {
             const numberOfPlayers = PlayerResource.GetPlayerCount()
             if ( numberOfPlayers > 7 ) {
                //this.TEAM_KILLS_TO_WIN = 25
-                nCOUNTDOWNTIMER = 901
+                nCOUNTDOWNTIMER = 901 // В конфиг добавить #config
             } else if (  numberOfPlayers > 4 || numberOfPlayers <= 7 ) {
                //this.TEAM_KILLS_TO_WIN = 20
                 nCOUNTDOWNTIMER = 721

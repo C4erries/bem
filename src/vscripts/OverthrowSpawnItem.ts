@@ -32,27 +32,56 @@ export class OverthrowSpawnItem{
 	tier5ItemBucket: string[] = []
 
     public OnTreasureChestPickedUp(event : DotaItemPickedUpEvent){
+        print("OnTreasureChestPickedUp")
         const item = EntIndexToHScript( event.ItemEntityIndex ) as CDOTA_Item
         const hContainer = item.GetContainer()
         //надо на нормальный for переписать, вместо return поставить break чтобы можно было
-        const func = () => {
-        this.itemSpawnLocationsInUse.forEach((v,k)=>{
-            if (v.hDrop == hContainer){
-                print( '^^^DROP CONTAINER!' )
-                if (v.hItemDestinationRevealer != undefined) {
-                    v.hItemDestinationRevealer.RemoveSelf()
-                    if(v.nItemDestinationParticles != undefined){   
-                        ParticleManager.DestroyParticle( v.nItemDestinationParticles, false )
-                    }
-                    DoEntFire( v.world_effects_name, "Stop", "0", 0, this, this )
-                }
-                this.itemSpawnLocations.push(v)
-                this.itemSpawnLocationsInUse.splice(k, 1)
-                return
-            }
+        const pickedUpSpawnLocationIndex = this.itemSpawnLocationsInUse.findIndex((v,k) =>{
+            return v.hDrop == hContainer
         })
+        
+        const pickedUpSpawnLocation = this.itemSpawnLocationsInUse[pickedUpSpawnLocationIndex]
+        if(pickedUpSpawnLocation  == undefined){
+            print("SpawnLocationInUseUndefined: "+pickedUpSpawnLocationIndex)
+            print("itemSpawnLocationsInUse.length: "+ this.itemSpawnLocationsInUse.length)
+            print("last item in SpawnLocationInUse: "+ this.itemSpawnLocationsInUse[this.itemSpawnLocationsInUse.length-1].hSpawnLocation.GetName() + " ")
         }
-        func()
+        if(pickedUpSpawnLocation .hDrop == undefined){
+            print("pickedUpSpawnLocation .hDrop undefined")
+        }
+        if (pickedUpSpawnLocation .hDrop == hContainer){
+            print( '^^^DROP CONTAINER!' )
+            if (pickedUpSpawnLocation.hItemDestinationRevealer != undefined) {
+                pickedUpSpawnLocation.hItemDestinationRevealer.RemoveSelf()
+                if(pickedUpSpawnLocation.nItemDestinationParticles != undefined){   
+                    ParticleManager.DestroyParticle( pickedUpSpawnLocation.nItemDestinationParticles, false )
+                }
+                else{
+                    print("pickedUpSpawnLocation.nItemDestinationParticles undefined")
+                }
+                DoEntFire( pickedUpSpawnLocation.world_effects_name, "Stop", "0", 0, this, this )
+            }
+            else{
+                print("pickedUpSpawnLocation.hItemDestinationRevealer undefined")
+            }
+            this.itemSpawnLocations.push(pickedUpSpawnLocation)
+            let debug = ""
+            this.itemSpawnLocations.forEach((v,k)=>{
+                if(v == undefined) debug += k+":undefined, "
+                else debug += k+":"+v.hSpawnLocation.GetName()+", "
+            })
+            print(debug)
+            print("^^^^^^ItemSpawnLocaions")
+            this.itemSpawnLocationsInUse.splice(pickedUpSpawnLocationIndex, 1)
+            debug = ""
+            this.itemSpawnLocationsInUse.forEach((v,k)=>{
+                if(v == undefined) debug += k+":undefined, "
+                else debug += k+":"+v.hSpawnLocation.GetName()+", "
+            })
+            print(debug)
+            print("^^^^^^ItemSpawnLocaionsInUse")
+        }
+
         
         this.SpecialItemAdd( event )
     }
@@ -119,7 +148,7 @@ export class OverthrowSpawnItem{
                 nMaxSpawns = 4
             }
 
-            for (let i=0; i < nMaxSpawns; i++) {
+            for (let i=1; i <= nMaxSpawns; i++) {
                 const spawnName = "item_spawn_" + i
                 print( '^^^SEARCHING FOR SPAWN POINT NAMED = ' + spawnName )
                 const hSpawnLocation = Entities.FindByName( undefined, spawnName )
@@ -136,9 +165,14 @@ export class OverthrowSpawnItem{
                         hItemDestinationRevealer: undefined,
                         nItemDestinationParticles: undefined
                     }
-                    this.itemSpawnLocations[i] = newSpawnLocation
+                    this.itemSpawnLocations[i-1] = newSpawnLocation
                 }
             }
+            let temp = ''
+            this.itemSpawnLocations.forEach((v,k)=>{
+                temp+= v.hSpawnLocation.GetName() + " "
+            })
+            print("PlanNextSpawn: itemSpawnLocations.forEach: " + temp)
         }
         
 
@@ -150,8 +184,24 @@ export class OverthrowSpawnItem{
         const r = RandomInt( 0, this.itemSpawnLocations.length-1 )
         const spawnPoint = this.itemSpawnLocations[r]
         this.itemSpawnLocations.splice(r, 1)
-        this.itemSpawnLocationsInUse.push( spawnPoint )
+        let debug = ""
+        this.itemSpawnLocations.forEach((v,k)=>{
+            if(v == undefined) debug += k+":undefined, "
+            else debug += k+":"+v.hSpawnLocation.GetName()+", "
+        })
+        print(debug)
+        print("^^^^^ItemSpawnLocaions    PlanNextSpawn")
 
+        //print("PlanNextSpawn: (spawnPoint == undefined) is " + (spawnPoint == undefined))
+        print("SpawnTo: " + (spawnPoint?.hSpawnLocation.GetName()))
+        this.itemSpawnLocationsInUse.push( spawnPoint )
+        debug = ""
+        this.itemSpawnLocationsInUse.forEach((v,k)=>{
+            if(v == undefined) debug += k+":undefined, "
+            else debug += k+":"+v.hSpawnLocation.GetName()+", "
+        })
+        print(debug)
+        print("^^^^^ItemSpawnLocaionsInUse   PlanNextSpawn")
         this.hCurrentItemSpawnLocation = spawnPoint
 
         return true
@@ -260,10 +310,21 @@ export class OverthrowSpawnItem{
 
         this.hCurrentItemSpawnLocation.hDrop = drop
 
-        print( '^^^ITEM SPAWN LOCATIONS' )
         let temp = ""
         //this.itemSpawnLocations.forEach((v)=>temp+=v.)
-        print(this.itemSpawnLocations)
+        this.itemSpawnLocations.forEach((v,k)=>{
+            temp += v.hSpawnLocation.GetName() + " "
+        })
+        print(temp)
+        print( '^^^ITEM SPAWN LOCATIONS' )
+        temp = ""
+        //this.itemSpawnLocations.forEach((v)=>temp+=v.)
+        this.itemSpawnLocationsInUse.forEach((v,k)=>{
+            if(v == undefined) print("SpawnLocationInUse undefined: "+k)
+            else temp += v.hSpawnLocation.GetName() + " "
+        })
+        print(temp)
+
         //PrintTable( this.itemSpawnLocations )
         print( '^^^ITEM SPAWN LOCATIONS IN USE' )
         //PrintTable( this.itemSpawnLocationsInUse )
@@ -313,10 +374,10 @@ export class OverthrowSpawnItem{
         else if (nCOUNTDOWNTIMER > 600){
             spawnedItem = t4
         }
-        else if (nCOUNTDOWNTIMER > 600){
+        else{
             spawnedItem = t5
         }
-
+        print("SpecialItemAdd: item " + spawnedItem)
         //add the item to the inventory && broadcast
         owner.AddItemByName( spawnedItem )
         EmitGlobalSound("Overthrow.Item.Claimed")
