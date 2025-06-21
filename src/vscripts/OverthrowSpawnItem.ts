@@ -1,3 +1,4 @@
+import { Config } from "./Config";
 import { GameConfig } from "./GameConfig";
 import { PickRandomShuffle } from "./Utility";
 
@@ -307,7 +308,7 @@ export class OverthrowSpawnItem{
         this.hCurrentItemSpawnLocation.nItemDestinationParticles = ParticleManager.CreateParticle( "particles/econ/wards/f2p/f2p_ward/f2p_ward_true_sight_ambient.vpcf", ParticleAttachment.ABSORIGIN, this.hCurrentItemSpawnLocation.hItemDestinationRevealer )
         ParticleManager.SetParticleControlEnt( this.hCurrentItemSpawnLocation.nItemDestinationParticles, ParticleAttachment.ABSORIGIN, this.hCurrentItemSpawnLocation.hItemDestinationRevealer, ParticleAttachment.ABSORIGIN, "attach_origin", this.hCurrentItemSpawnLocation.hItemDestinationRevealer.GetAbsOrigin(), true )
 
-        Timers.CreateTimer(3, () => {
+        Timers.CreateTimer(Config.TIME_TO_REMOVE_AIRDROP_REVEALER, () => {
             this.hCurrentItemSpawnLocation?.hItemDestinationRevealer?.RemoveSelf()
             if(this.hCurrentItemSpawnLocation?.nItemDestinationParticles != undefined){
                 ParticleManager.DestroyParticle( this.hCurrentItemSpawnLocation.nItemDestinationParticles, false )
