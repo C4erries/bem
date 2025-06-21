@@ -1,3 +1,4 @@
+import { Config } from "./Config";
 import { GameConfig } from "./GameConfig";
 import { PickRandomShuffle } from "./Utility";
 
@@ -5,7 +6,7 @@ declare interface SpawnLocation{
     hSpawnLocation: CBaseEntity,
     path_track_name: string,
     world_effects_name: string,
-    hDrop: CDOTA_Item_Physical | undefined,
+    hDrop: CDOTA_Item_Physical[],
     hItemDestinationRevealer: CDOTA_BaseNPC | undefined,
     nItemDestinationParticles: ParticleID | undefined,
 }
@@ -17,13 +18,9 @@ export class OverthrowSpawnItem{
     warnTime: number = 7;
     hasWarnedSpawn: boolean = false;
     itemSpawnLocations: SpawnLocation[] = [];
-    itemSpawnLocationsInUse: SpawnLocation[]  = [];
-    itemSpawnLocation = Entities.FindByName( undefined, "greevil" )
-    itemSpawnIndex: number = 1;
     hCurrentItemSpawnLocation: SpawnLocation | undefined;
     hItemDestinationRevealer: CDOTA_BaseNPC | undefined;
     nItemDestinationParticles: ParticleID | undefined;
-
 
     tier1ItemBucket: string[] = []
 	tier2ItemBucket: string[] = []
@@ -32,32 +29,43 @@ export class OverthrowSpawnItem{
 	tier5ItemBucket: string[] = []
 
     public OnTreasureChestPickedUp(event : DotaItemPickedUpEvent){
+        //print("OnTreasureChestPickedUp")
         const item = EntIndexToHScript( event.ItemEntityIndex ) as CDOTA_Item
         const hContainer = item.GetContainer()
-        //надо на нормальный for переписать, вместо return поставить break чтобы можно было
-        const func = () => {
-        this.itemSpawnLocationsInUse.forEach((v,k)=>{
-            if (v.hDrop == hContainer){
-                print( '^^^DROP CONTAINER!' )
-                if (v.hItemDestinationRevealer != undefined) {
-                    v.hItemDestinationRevealer.RemoveSelf()
-                    if(v.nItemDestinationParticles != undefined){   
-                        ParticleManager.DestroyParticle( v.nItemDestinationParticles, false )
-                    }
-                    DoEntFire( v.world_effects_name, "Stop", "0", 0, this, this )
-                }
-                this.itemSpawnLocations.push(v)
-                this.itemSpawnLocationsInUse.splice(k, 1)
-                return
-            }
+        let hContainerIndex = -1;
+        const pickedUpSpawnLocationIndex = this.itemSpawnLocations.findIndex((v,k) =>{
+            hContainerIndex = v.hDrop.findIndex((drop) => drop == hContainer)
+            return hContainerIndex != -1
         })
+        const pickedUpSpawnLocation = this.itemSpawnLocations[pickedUpSpawnLocationIndex]
+        /*
+        if(pickedUpSpawnLocation  == undefined){
+            print("SpawnLocationInUseUndefined: "+pickedUpSpawnLocationIndex)
         }
-        func()
+        if(pickedUpSpawnLocation .hDrop == undefined){
+            print("pickedUpSpawnLocation.hDrop undefined")
+        }
+        */
+
+        
+        DoEntFire( pickedUpSpawnLocation.world_effects_name, "Stop", "0", 0, this, this )
+        pickedUpSpawnLocation.hDrop.splice(hContainerIndex, 1)
+            /*
+            let debug = ""
+            this.itemSpawnLocations.forEach((v,k)=>{
+                if(v == undefined) debug += k+":undefined, "
+                else debug += k+":"+v.hSpawnLocation.GetName()+", "
+            })
+            print(debug)
+            print("^^^^^^ItemSpawnLocaions")
+            
+        }*/
+
         
         this.SpecialItemAdd( event )
     }
 
-        public ThinkSpecialItemDrop(){
+    public ThinkSpecialItemDrop(){
         //Stop spawning items after the maximum amount
         if (this.nNextSpawnItemNumber >= this.nMaxItemSpawns) {
             return
@@ -105,23 +113,22 @@ export class OverthrowSpawnItem{
     }
 
     PlanNextSpawn(){
-        print("PlanNextSpawn")
+        //print("PlanNextSpawn")
         if (this.itemSpawnLocations == undefined || this.itemSpawnLocations.length ==0) {
             this.itemSpawnLocations = []
-            this.itemSpawnLocationsInUse = []
             let nMaxSpawns = 8
             if (GetMapName() == "desert_quintet") {
-                print("map is desert_quintet")
+                //print("map is desert_quintet")
                 nMaxSpawns = 6
             }
             else if (GetMapName() == "temple_quartet") {
-                print("map is temple_quartet")
+                //print("map is temple_quartet")
                 nMaxSpawns = 4
             }
 
-            for (let i=0; i < nMaxSpawns; i++) {
+            for (let i=1; i <= nMaxSpawns; i++) {
                 const spawnName = "item_spawn_" + i
-                print( '^^^SEARCHING FOR SPAWN POINT NAMED = ' + spawnName )
+                //print( '^^^SEARCHING FOR SPAWN POINT NAMED = ' + spawnName )
                 const hSpawnLocation = Entities.FindByName( undefined, spawnName )
                 if (hSpawnLocation == undefined ){
                     print( '^^^MISSING SPAWN LOCATION = ' + spawnName )
@@ -132,13 +139,20 @@ export class OverthrowSpawnItem{
                         hSpawnLocation: hSpawnLocation,
                         path_track_name: "item_spawn_" + i,
                         world_effects_name: "item_spawn_particle_" + i,
-                        hDrop: undefined,
+                        hDrop: [],
                         hItemDestinationRevealer: undefined,
                         nItemDestinationParticles: undefined
                     }
-                    this.itemSpawnLocations[i] = newSpawnLocation
+                    this.itemSpawnLocations[i-1] = newSpawnLocation
                 }
             }
+            /*
+            let temp = ''
+            this.itemSpawnLocations.forEach((v,k)=>{
+                temp+= v.hSpawnLocation.GetName() + " "
+            })
+            print("PlanNextSpawn: itemSpawnLocations.forEach: " + temp)
+            */
         }
         
 
@@ -149,9 +163,17 @@ export class OverthrowSpawnItem{
 
         const r = RandomInt( 0, this.itemSpawnLocations.length-1 )
         const spawnPoint = this.itemSpawnLocations[r]
-        this.itemSpawnLocations.splice(r, 1)
-        this.itemSpawnLocationsInUse.push( spawnPoint )
-
+        /*
+        let debug = ""
+        this.itemSpawnLocations.forEach((v,k)=>{
+            if(v == undefined) debug += k+":undefined, "
+            else debug += k+":"+v.hSpawnLocation.GetName()+", "
+        })
+        print(debug)
+        print("^^^^^ItemSpawnLocaions    PlanNextSpawn")
+        */
+        //print("PlanNextSpawn: (spawnPoint == undefined) is " + (spawnPoint == undefined))
+        //print("SpawnTo: " + (spawnPoint?.hSpawnLocation.GetName()))
         this.hCurrentItemSpawnLocation = spawnPoint
 
         return true
@@ -164,7 +186,7 @@ export class OverthrowSpawnItem{
     }
 
     WarnItem(){
-        print("WarnItem")
+        //print("WarnItem")
         //find the spawn point
         if (!this.PlanNextSpawn()) {
             return false
@@ -192,7 +214,7 @@ export class OverthrowSpawnItem{
 
 
     SpawnItem(){
-        print("SpawnItem")
+        //print("SpawnItem")
         //notify everyone
         CustomGameEventManager.Send_ServerToAllClients( "item_has_spawned", {})
         EmitGlobalSound( "Overthrow.Item.Spawn" )
@@ -206,13 +228,13 @@ export class OverthrowSpawnItem{
             return
         }
         treasureAbility.SetLevel( 1 )
-    //print ("Spawning Treasure")
+        //print ("Spawning Treasure")
         if(this.hCurrentItemSpawnLocation == undefined){
             print("SpawnItem: this.hCurrentItemSpawnLocation undefined")
             return
         }
         treasureCourier.SetInitialGoalEntity( this.hCurrentItemSpawnLocation.hSpawnLocation )
-    //const particleTreasure = ParticleManager.CreateParticle( "particles/items_fx/black_king_bar_avatar.vpcf", PATTACH_ABSORIGIN, treasureCourier )
+        //const particleTreasure = ParticleManager.CreateParticle( "particles/items_fx/black_king_bar_avatar.vpcf", PATTACH_ABSORIGIN, treasureCourier )
         //ParticleManager.SetParticleControlEnt( particleTreasure, PATTACH_ABSORIGIN, treasureCourier, PATTACH_ABSORIGIN, "attach_origin", treasureCourier:GetAbsOrigin(), true )
         //treasureCourier:Attribute_SetIntValue( "particleID", particleTreasure )
     }
@@ -220,7 +242,7 @@ export class OverthrowSpawnItem{
     
 
     TreasureDrop( treasureCourier : CDOTA_BaseNPC) : void{
-        print("TreasureDrop")
+        //print("TreasureDrop")
         //Destroy vision revealer
         this.hItemDestinationRevealer?.RemoveSelf()
         if(this.nItemDestinationParticles != undefined){
@@ -258,22 +280,25 @@ export class OverthrowSpawnItem{
             return
         }
 
-        this.hCurrentItemSpawnLocation.hDrop = drop
+        this.hCurrentItemSpawnLocation.hDrop.push(drop)
 
-        print( '^^^ITEM SPAWN LOCATIONS' )
+        /*
         let temp = ""
-        //this.itemSpawnLocations.forEach((v)=>temp+=v.)
-        print(this.itemSpawnLocations)
-        //PrintTable( this.itemSpawnLocations )
-        print( '^^^ITEM SPAWN LOCATIONS IN USE' )
-        //PrintTable( this.itemSpawnLocationsInUse )
+        this.itemSpawnLocations.forEach((v,k)=>{
+            temp += v.hSpawnLocation.GetName() + " "
+        })
+        print(temp)
+        print( '^^^ITEM SPAWN LOCATIONS' )
+        */
 
         //Stop the particle effect
-        DoEntFire( "item_spawn_particle_" + this.itemSpawnIndex, "stopplayendcap", "0", 0, this, this )
+        DoEntFire( "item_spawn_particle_1", "stopplayendcap", "0", 0, this, this )
 
         //Knock people back from the treasure
         this.KnockBackFromTreasure( spawnPoint, 375, 0.25, 400.1, 100 )
-            
+
+
+
         //Destroy the courier
         UTIL_Remove( treasureCourier )
 
@@ -282,6 +307,13 @@ export class OverthrowSpawnItem{
         this.hCurrentItemSpawnLocation.hItemDestinationRevealer = CreateUnitByName( "npc_treasure_revealer", this.hCurrentItemSpawnLocation.hSpawnLocation.GetAbsOrigin(), false, undefined, undefined, DotaTeam.GOODGUYS )
         this.hCurrentItemSpawnLocation.nItemDestinationParticles = ParticleManager.CreateParticle( "particles/econ/wards/f2p/f2p_ward/f2p_ward_true_sight_ambient.vpcf", ParticleAttachment.ABSORIGIN, this.hCurrentItemSpawnLocation.hItemDestinationRevealer )
         ParticleManager.SetParticleControlEnt( this.hCurrentItemSpawnLocation.nItemDestinationParticles, ParticleAttachment.ABSORIGIN, this.hCurrentItemSpawnLocation.hItemDestinationRevealer, ParticleAttachment.ABSORIGIN, "attach_origin", this.hCurrentItemSpawnLocation.hItemDestinationRevealer.GetAbsOrigin(), true )
+
+        Timers.CreateTimer(Config.TIME_TO_REMOVE_AIRDROP_REVEALER, () => {
+            this.hCurrentItemSpawnLocation?.hItemDestinationRevealer?.RemoveSelf()
+            if(this.hCurrentItemSpawnLocation?.nItemDestinationParticles != undefined){
+                ParticleManager.DestroyParticle( this.hCurrentItemSpawnLocation.nItemDestinationParticles, false )
+            }
+        })
     }
 
     SpecialItemAdd( event : DotaItemPickedUpEvent){
@@ -301,7 +333,7 @@ export class OverthrowSpawnItem{
         
         
         let spawnedItem = ""
-
+        //Константы, либо изменить механику
         if(nCOUNTDOWNTIMER > 900){
             spawnedItem = t1
         }else if(nCOUNTDOWNTIMER > 800){
@@ -313,10 +345,10 @@ export class OverthrowSpawnItem{
         else if (nCOUNTDOWNTIMER > 600){
             spawnedItem = t4
         }
-        else if (nCOUNTDOWNTIMER > 600){
+        else{
             spawnedItem = t5
         }
-
+        //print("SpecialItemAdd: item " + spawnedItem)
         //add the item to the inventory && broadcast
         owner.AddItemByName( spawnedItem )
         EmitGlobalSound("Overthrow.Item.Claimed")

@@ -9,4 +9,6 @@ export class Config{
     static COUNTDOWN_ENABLED=false;
     static FILL_WITH_BOTS=true;
     static PRE_GAME_START_TIME=10;
+
+    static TIME_TO_REMOVE_AIRDROP_REVEALER = 3;
 }
