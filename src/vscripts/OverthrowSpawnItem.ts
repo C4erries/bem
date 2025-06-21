@@ -333,7 +333,7 @@ export class OverthrowSpawnItem{
         
         
         let spawnedItem = ""
-
+        //Константы, либо изменить механику
         if(nCOUNTDOWNTIMER > 900){
             spawnedItem = t1
         }else if(nCOUNTDOWNTIMER > 800){
