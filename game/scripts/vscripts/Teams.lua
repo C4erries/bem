@@ -6,7 +6,7 @@ local Set = ____lualib.Set
 local __TS__Iterator = ____lualib.__TS__Iterator
 local __TS__ArrayForEach = ____lualib.__TS__ArrayForEach
 local __TS__SourceMapTraceBack = ____lualib.__TS__SourceMapTraceBack
-__TS__SourceMapTraceBack(debug.getinfo(1).short_src, {["11"] = 5,["12"] = 1,["13"] = 1,["14"] = 149,["15"] = 150,["16"] = 151,["17"] = 152,["19"] = 153,["20"] = 149,["21"] = 5,["22"] = 5,["23"] = 5,["24"] = 5,["25"] = 5,["26"] = 5,["27"] = 5,["28"] = 5,["29"] = 5,["30"] = 5,["31"] = 5,["32"] = 5,["33"] = 18,["34"] = 18,["35"] = 18,["37"] = 20,["38"] = 21,["39"] = 23,["40"] = 25,["41"] = 26,["42"] = 27,["43"] = 28,["44"] = 29,["45"] = 30,["46"] = 31,["47"] = 32,["48"] = 33,["49"] = 34,["50"] = 22,["51"] = 37,["52"] = 38,["53"] = 42,["54"] = 43,["55"] = 44,["56"] = 45,["57"] = 46,["58"] = 47,["59"] = 48,["60"] = 49,["61"] = 50,["62"] = 51,["63"] = 37,["64"] = 55,["65"] = 59,["66"] = 60,["67"] = 61,["69"] = 68,["70"] = 69,["71"] = 69,["72"] = 69,["73"] = 69,["74"] = 70,["75"] = 72,["76"] = 73,["78"] = 70,["79"] = 86,["80"] = 89,["81"] = 91,["82"] = 92,["83"] = 93,["85"] = 96,["86"] = 98,["87"] = 109,["88"] = 110,["91"] = 112,["92"] = 112,["93"] = 114,["94"] = 112,["97"] = 116,["98"] = 55,["99"] = 121,["100"] = 122,["101"] = 123,["102"] = 124,["103"] = 125,["105"] = 121,["106"] = 131,["107"] = 132,["108"] = 133,["109"] = 134,["112"] = 138,["113"] = 139,["116"] = 142,["117"] = 131,["118"] = 155,["119"] = 157,["120"] = 158,["122"] = 159,["123"] = 159,["124"] = 160,["125"] = 161,["126"] = 163,["127"] = 164,["129"] = 166,["131"] = 159,["134"] = 171,["136"] = 172,["137"] = 172,["138"] = 173,["139"] = 174,["140"] = 175,["141"] = 176,["143"] = 179,["144"] = 180,["146"] = 182,["149"] = 172,["152"] = 190,["153"] = 190,["154"] = 190,["155"] = 192,["156"] = 193,["158"] = 194,["159"] = 194,["160"] = 195,["161"] = 196,["162"] = 197,["163"] = 199,["164"] = 200,["167"] = 194,["170"] = 204,["171"] = 205,["172"] = 206,["174"] = 190,["175"] = 190,["176"] = 210,["177"] = 211,["179"] = 155});
+__TS__SourceMapTraceBack(debug.getinfo(1).short_src, {["11"] = 5,["12"] = 1,["13"] = 1,["14"] = 173,["15"] = 174,["16"] = 175,["17"] = 176,["19"] = 177,["20"] = 173,["21"] = 5,["22"] = 5,["23"] = 5,["24"] = 5,["25"] = 5,["26"] = 5,["27"] = 5,["28"] = 5,["29"] = 5,["30"] = 5,["31"] = 5,["32"] = 5,["33"] = 18,["34"] = 18,["35"] = 18,["37"] = 20,["38"] = 21,["39"] = 22,["40"] = 24,["41"] = 26,["42"] = 27,["43"] = 28,["44"] = 29,["45"] = 30,["46"] = 31,["47"] = 32,["48"] = 33,["49"] = 34,["50"] = 35,["51"] = 23,["52"] = 38,["53"] = 39,["54"] = 43,["55"] = 44,["56"] = 45,["57"] = 46,["58"] = 47,["59"] = 48,["60"] = 49,["61"] = 50,["62"] = 51,["63"] = 52,["64"] = 38,["65"] = 56,["66"] = 60,["67"] = 61,["68"] = 62,["70"] = 69,["71"] = 70,["72"] = 70,["73"] = 70,["74"] = 70,["75"] = 71,["76"] = 73,["77"] = 74,["79"] = 71,["80"] = 87,["81"] = 90,["82"] = 92,["83"] = 93,["84"] = 94,["86"] = 96,["88"] = 98,["89"] = 99,["92"] = 100,["96"] = 103,["99"] = 104,["103"] = 107,["106"] = 108,["110"] = 111,["113"] = 112,["119"] = 116,["124"] = 122,["125"] = 133,["126"] = 134,["129"] = 136,["130"] = 136,["131"] = 138,["132"] = 136,["135"] = 140,["136"] = 56,["137"] = 145,["138"] = 146,["139"] = 147,["140"] = 148,["141"] = 149,["143"] = 145,["144"] = 155,["145"] = 156,["146"] = 157,["147"] = 158,["150"] = 162,["151"] = 163,["154"] = 166,["155"] = 155,["156"] = 179,["157"] = 181,["158"] = 182,["160"] = 183,["161"] = 183,["162"] = 184,["163"] = 185,["164"] = 187,["165"] = 188,["167"] = 190,["169"] = 183,["172"] = 195,["174"] = 196,["175"] = 196,["176"] = 197,["177"] = 198,["178"] = 199,["179"] = 200,["181"] = 203,["182"] = 204,["184"] = 206,["187"] = 196,["190"] = 214,["191"] = 214,["192"] = 214,["193"] = 216,["194"] = 217,["196"] = 218,["197"] = 218,["198"] = 219,["199"] = 220,["200"] = 221,["201"] = 223,["202"] = 224,["205"] = 218,["208"] = 228,["209"] = 229,["210"] = 230,["212"] = 214,["213"] = 214,["214"] = 234,["215"] = 235,["217"] = 179});
 local ____exports = {}
 local team_colors
 local ____Utility = require("Utility")
@@ -36,6 +36,7 @@ TeamsSettings.name = "TeamsSettings"
 function TeamsSettings.prototype.____constructor(self)
     self.m_VictoryMessages = __TS__New(Map)
     self.m_GatheredShuffledTeams = {}
+    self.maxPlayersPerValidTeam = 1
     self:SettingTeams()
     self.m_VictoryMessages:set(DOTA_TEAM_GOODGUYS, "#VictoryMessage_GoodGuys")
     self.m_VictoryMessages:set(DOTA_TEAM_BADGUYS, "#VictoryMessage_BadGuys")
@@ -82,7 +83,44 @@ function TeamsSettings.prototype.GatherAndRegisterValidTeams(self)
         table.insert(foundTeamsList, DOTA_TEAM_BADGUYS)
         numTeams = 2
     end
-    local maxPlayersPerValidTeam = math.floor(10 / numTeams)
+    self.maxPlayersPerValidTeam = math.floor(10 / numTeams)
+    repeat
+        local ____switch10 = GetMapName()
+        local ____cond10 = ____switch10 == "forest_solo"
+        if ____cond10 then
+            do
+                self.maxPlayersPerValidTeam = 1
+                break
+            end
+        end
+        ____cond10 = ____cond10 or ____switch10 == "desert_duo"
+        if ____cond10 then
+            do
+                self.maxPlayersPerValidTeam = 2
+                break
+            end
+        end
+        ____cond10 = ____cond10 or ____switch10 == "temple_quartet"
+        if ____cond10 then
+            do
+                self.maxPlayersPerValidTeam = 4
+                break
+            end
+        end
+        ____cond10 = ____cond10 or ____switch10 == "desert_quintet"
+        if ____cond10 then
+            do
+                self.maxPlayersPerValidTeam = 5
+                break
+            end
+        end
+        do
+            do
+                self.maxPlayersPerValidTeam = 3
+                break
+            end
+        end
+    until true
     self.m_GatheredShuffledTeams = ShuffledList(nil, foundTeamsList)
     for team = 0, DOTA_TEAM_COUNT - 1 do
         GameRules:SetCustomGameTeamMaxPlayers(team, 0)
@@ -90,7 +128,7 @@ function TeamsSettings.prototype.GatherAndRegisterValidTeams(self)
     do
         local i = 0
         while i < numTeams do
-            GameRules:SetCustomGameTeamMaxPlayers(self.m_GatheredShuffledTeams[i + 1], maxPlayersPerValidTeam)
+            GameRules:SetCustomGameTeamMaxPlayers(self.m_GatheredShuffledTeams[i + 1], self.maxPlayersPerValidTeam)
             i = i + 1
         end
     end

@@ -3,8 +3,10 @@ local __TS__Class = ____lualib.__TS__Class
 local __TS__New = ____lualib.__TS__New
 local __TS__Decorate = ____lualib.__TS__Decorate
 local __TS__SourceMapTraceBack = ____lualib.__TS__SourceMapTraceBack
-__TS__SourceMapTraceBack(debug.getinfo(1).short_src, {["8"] = 1,["9"] = 1,["10"] = 2,["11"] = 2,["12"] = 3,["13"] = 3,["14"] = 4,["15"] = 4,["16"] = 6,["17"] = 15,["18"] = 16,["19"] = 15,["21"] = 18,["22"] = 19,["23"] = 19,["24"] = 19,["25"] = 19,["26"] = 82,["27"] = 87,["28"] = 87,["29"] = 87,["30"] = 87,["31"] = 87,["32"] = 88,["33"] = 88,["34"] = 88,["35"] = 88,["36"] = 88,["37"] = 89,["38"] = 89,["39"] = 89,["40"] = 89,["41"] = 89,["42"] = 92,["43"] = 92,["44"] = 92,["45"] = 93,["46"] = 96,["47"] = 97,["48"] = 105,["49"] = 106,["50"] = 107,["52"] = 92,["53"] = 92,["54"] = 81,["55"] = 21,["56"] = 23,["57"] = 24,["58"] = 26,["59"] = 29,["60"] = 30,["61"] = 31,["62"] = 34,["63"] = 35,["64"] = 36,["65"] = 37,["66"] = 38,["67"] = 39,["68"] = 40,["69"] = 41,["70"] = 42,["71"] = 43,["72"] = 46,["73"] = 47,["74"] = 48,["75"] = 49,["76"] = 52,["77"] = 53,["78"] = 56,["79"] = 59,["80"] = 60,["81"] = 21,["82"] = 63,["83"] = 65,["84"] = 63,["85"] = 71,["87"] = 73,["88"] = 73,["89"] = 74,["90"] = 73,["93"] = 77,["94"] = 79,["95"] = 71,["96"] = 115,["97"] = 116,["98"] = 118,["99"] = 121,["100"] = 122,["101"] = 123,["102"] = 124,["103"] = 127,["104"] = 128,["105"] = 129,["106"] = 129,["107"] = 129,["108"] = 129,["109"] = 129,["110"] = 129,["111"] = 130,["112"] = 132,["113"] = 135,["114"] = 136,["115"] = 115,["116"] = 142,["117"] = 143,["118"] = 142,["119"] = 146,["120"] = 147,["121"] = 149,["122"] = 161,["124"] = 173,["125"] = 175,["126"] = 175,["127"] = 175,["128"] = 175,["130"] = 146,["131"] = 179,["132"] = 180,["133"] = 179,["134"] = 186,["135"] = 187,["136"] = 186,["137"] = 192,["138"] = 194,["139"] = 196,["140"] = 197,["141"] = 199,["144"] = 192,["145"] = 205,["146"] = 206,["147"] = 207,["148"] = 208,["149"] = 209,["150"] = 210,["151"] = 211,["152"] = 212,["153"] = 213,["154"] = 214,["155"] = 216,["156"] = 217,["157"] = 218,["158"] = 219,["159"] = 221,["160"] = 222,["161"] = 223,["162"] = 225,["163"] = 226,["164"] = 229,["165"] = 231,["166"] = 231,["167"] = 231,["168"] = 231,["169"] = 231,["170"] = 231,["171"] = 231,["172"] = 231,["173"] = 231,["174"] = 231,["175"] = 205,["176"] = 15,["177"] = 16});
+__TS__SourceMapTraceBack(debug.getinfo(1).short_src, {["8"] = 1,["9"] = 1,["10"] = 3,["11"] = 3,["12"] = 4,["13"] = 4,["14"] = 5,["15"] = 5,["16"] = 6,["17"] = 6,["18"] = 8,["19"] = 17,["20"] = 18,["21"] = 17,["23"] = 20,["24"] = 21,["25"] = 21,["26"] = 21,["27"] = 21,["28"] = 84,["29"] = 89,["30"] = 89,["31"] = 89,["32"] = 89,["33"] = 89,["34"] = 90,["35"] = 90,["36"] = 90,["37"] = 90,["38"] = 90,["39"] = 91,["40"] = 91,["41"] = 91,["42"] = 91,["43"] = 91,["44"] = 94,["45"] = 94,["46"] = 94,["47"] = 95,["48"] = 98,["49"] = 99,["50"] = 107,["51"] = 108,["52"] = 109,["54"] = 94,["55"] = 94,["56"] = 83,["57"] = 23,["58"] = 25,["59"] = 26,["60"] = 28,["61"] = 31,["62"] = 32,["63"] = 33,["64"] = 36,["65"] = 37,["66"] = 38,["67"] = 39,["68"] = 40,["69"] = 41,["70"] = 42,["71"] = 43,["72"] = 44,["73"] = 45,["74"] = 48,["75"] = 49,["76"] = 50,["77"] = 51,["78"] = 54,["79"] = 55,["80"] = 58,["81"] = 61,["82"] = 62,["83"] = 23,["84"] = 65,["85"] = 67,["86"] = 65,["87"] = 73,["89"] = 75,["90"] = 75,["91"] = 76,["92"] = 75,["95"] = 79,["96"] = 81,["97"] = 73,["98"] = 117,["99"] = 118,["100"] = 120,["101"] = 123,["102"] = 124,["103"] = 125,["104"] = 126,["105"] = 130,["106"] = 131,["107"] = 131,["108"] = 131,["109"] = 131,["110"] = 131,["111"] = 131,["112"] = 132,["113"] = 134,["114"] = 137,["115"] = 138,["116"] = 117,["117"] = 144,["118"] = 145,["119"] = 144,["120"] = 148,["121"] = 149,["122"] = 151,["123"] = 163,["125"] = 175,["126"] = 177,["127"] = 177,["128"] = 177,["129"] = 177,["131"] = 148,["132"] = 181,["133"] = 182,["134"] = 181,["135"] = 188,["136"] = 189,["137"] = 188,["138"] = 194,["139"] = 196,["140"] = 198,["141"] = 199,["142"] = 201,["145"] = 194,["146"] = 207,["147"] = 208,["148"] = 209,["149"] = 210,["150"] = 211,["151"] = 212,["152"] = 213,["153"] = 214,["154"] = 215,["155"] = 216,["156"] = 218,["157"] = 219,["158"] = 220,["159"] = 221,["160"] = 222,["161"] = 223,["162"] = 224,["163"] = 225,["164"] = 226,["165"] = 228,["166"] = 229,["167"] = 232,["168"] = 234,["169"] = 234,["170"] = 234,["171"] = 234,["172"] = 234,["173"] = 234,["174"] = 234,["175"] = 234,["176"] = 234,["177"] = 234,["178"] = 207,["179"] = 17,["180"] = 18});
 local ____exports = {}
+local ____Config = require("Config")
+local Config = ____Config.Config
 local ____tstl_2Dutils = require("lib.tstl-utils")
 local reloadable = ____tstl_2Dutils.reloadable
 local ____modifier_panic = require("modifiers.modifier_panic")
@@ -100,7 +102,6 @@ function GameMode.prototype.configure(self)
     GameRules:SetCustomVictoryMessageDuration(10)
     GameRules:SetPreGameTime(10)
     GameRules:SetStrategyTime(10)
-    Convars:RegisterCommand("overthrow_force_item_drop", self.Overthrow.ForceSpawnItem, "Force an item drop.", FCVAR_CHEAT)
     Convars:RegisterCommand("overthrow_force_gold_drop", self.Overthrow.SpawnGold, "Force an gold drop.", FCVAR_CHEAT)
     Convars:RegisterCommand(
         "overthrow_set_timer",
@@ -145,17 +146,19 @@ end
 function GameMode.prototype.settingGameModeEntity(self)
     GameRules:GetGameModeEntity()
     GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_DOUBLEDAMAGE, true)
-    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_HASTE, false)
-    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_ILLUSION, false)
-    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_INVISIBILITY, false)
-    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_REGENERATION, false)
-    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_ARCANE, false)
+    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_HASTE, true)
+    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_ILLUSION, true)
+    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_INVISIBILITY, true)
+    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_REGENERATION, true)
+    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_ARCANE, true)
     GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_BOUNTY, false)
-    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_SHIELD, false)
+    GameRules:GetGameModeEntity():SetRuneEnabled(DOTA_RUNE_SHIELD, true)
     GameRules:GetGameModeEntity():SetLoseGoldOnDeath(false)
     GameRules:GetGameModeEntity():SetCanSellAnywhere(true)
     GameRules:GetGameModeEntity():SetGiveFreeTPOnDeath(false)
     GameRules:SetUseUniversalShopMode(true)
+    GameRules:GetGameModeEntity():SetFreeCourierModeEnabled(true)
+    GameRules:GetGameModeEntity():SetUseTurboCouriers(Config.USE_TURBO_COURIERS)
     GameRules:GetGameModeEntity():SetFountainPercentageHealthRegen(0)
     GameRules:GetGameModeEntity():SetFountainPercentageManaRegen(0)
     GameRules:GetGameModeEntity():SetFountainConstantManaRegen(0)

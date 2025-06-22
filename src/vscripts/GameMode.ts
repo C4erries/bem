@@ -1,3 +1,5 @@
+import { Config } from "./Config";
+import { GameConfig } from "./GameConfig";
 import { reloadable } from "./lib/tstl-utils";
 import { modifier_panic } from "./modifiers/modifier_panic";
 import { Overthrow } from "./Overthrow";
@@ -124,7 +126,7 @@ export class GameMode {
         GameRules.SetStrategyTime( 10.0 )
         //GameRules.GetGameModeEntity().SetLuaGameMode(this);
 
-        Convars.RegisterCommand("overthrow_force_item_drop", this.Overthrow.ForceSpawnItem, "Force an item drop.", ConVarFlags.CHEAT);
+        //Convars.RegisterCommand("overthrow_force_item_drop", this.Overthrow.ForceSpawnItem, "Force an item drop.", ConVarFlags.CHEAT);
         Convars.RegisterCommand("overthrow_force_gold_drop", this.Overthrow.SpawnGold, "Force an gold drop.", ConVarFlags.CHEAT);
         Convars.RegisterCommand("overthrow_set_timer", (...args) => this.Overthrow.SetTimer(), "Set the timer.", ConVarFlags.CHEAT);
         Convars.SetInt( "dota_server_side_animation_heroesonly", 0 )
@@ -205,19 +207,20 @@ export class GameMode {
     private settingGameModeEntity() : void{
         GameRules.GetGameModeEntity()
         GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.DOUBLEDAMAGE , true ) //Double Damage
-        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.HASTE, false ) //Haste
-        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.ILLUSION, false ) //Illusion
-        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.INVISIBILITY, false ) //Invis
-        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.REGENERATION, false ) //Regen
-        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.ARCANE, false ) //Arcane
+        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.HASTE, true ) //Haste
+        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.ILLUSION, true ) //Illusion
+        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.INVISIBILITY, true ) //Invis
+        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.REGENERATION, true ) //Regen
+        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.ARCANE, true ) //Arcane
         GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.BOUNTY, false ) //Bounty
-        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.SHIELD, false ) //Bounty
+        GameRules.GetGameModeEntity().SetRuneEnabled( RuneType.SHIELD, true ) //Bounty
 
         GameRules.GetGameModeEntity().SetLoseGoldOnDeath( false )
         GameRules.GetGameModeEntity().SetCanSellAnywhere( true ) // НЕ РАБОТАЕТ ?
         GameRules.GetGameModeEntity().SetGiveFreeTPOnDeath( false )
         GameRules.SetUseUniversalShopMode( true )
-
+        GameRules.GetGameModeEntity().SetFreeCourierModeEnabled(true)
+        GameRules.GetGameModeEntity().SetUseTurboCouriers(Config.USE_TURBO_COURIERS)
         GameRules.GetGameModeEntity().SetFountainPercentageHealthRegen( 0 ) // ФонТаня дает руну регена
 	    GameRules.GetGameModeEntity().SetFountainPercentageManaRegen( 0 )
 	    GameRules.GetGameModeEntity().SetFountainConstantManaRegen( 0 )

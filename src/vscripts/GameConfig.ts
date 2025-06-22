@@ -79,4 +79,6 @@ export class GameConfig{
         ]
 
     
+    static zondbe_in_camp_min = 3
+    static zondbe_in_camp_max = 10
 }

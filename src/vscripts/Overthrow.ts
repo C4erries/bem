@@ -87,17 +87,27 @@ export class Overthrow {
                //this.TEAM_KILLS_TO_WIN = 15
                 nCOUNTDOWNTIMER = 601
             }
-
-            if (GetMapName() == "forest_solo" ) {
+            switch(GetMapName()){
+            case "forest_solo":{
                 this.TEAM_KILLS_TO_WIN = this.KILLS_TO_WIN_SINGLES
-            } else if (  GetMapName() == "desert_duo" ) {
+                break;
+            }
+            case "desert_duo":{
                 this.TEAM_KILLS_TO_WIN = this.KILLS_TO_WIN_DUOS
-            } else if (  GetMapName() == "temple_quartet" ) {
+                break;
+            }
+            case "temple_quartet":{
                 this.TEAM_KILLS_TO_WIN = this.KILLS_TO_WIN_QUADS
-            } else if (  GetMapName() == "desert_quintet" ) {
+                break;
+            }
+            case "desert_quintet":{
                 this.TEAM_KILLS_TO_WIN = this.KILLS_TO_WIN_QUINTS
-            } else {
+                break;
+            }
+            default:{
                 this.TEAM_KILLS_TO_WIN = this.KILLS_TO_WIN_TRIOS
+                break;
+            }
             }
            //print( "Kills to win = " .. tostring(this.TEAM_KILLS_TO_WIN) )
             CustomNetTables.SetTableValue("game_state", "victory_condition", { kills_to_win: this.TEAM_KILLS_TO_WIN } );
@@ -116,7 +126,7 @@ export class Overthrow {
 
         } else if (  nNewState == GameState.GAME_IN_PROGRESS ) {
            //print( "OnGameRulesStateChange: Game In Progress" )
-            this.countdownEnabled = true
+            this.countdownEnabled = Config.COUNTDOWN_ENABLED
             CustomGameEventManager.Send_ServerToAllClients( "show_timer", {} as never )
             DoEntFire( "center_experience_ring_particles", "Start", "0", 0, this, this  )
 

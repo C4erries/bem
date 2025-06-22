@@ -32,30 +32,22 @@ export function ExecuteOrderFilter( filterTable : ExecuteOrderFilterEvent ) : bo
                 if(player==undefined){
                     return true
                 }
-                const hero = player.GetAssignedHero()
-                
-                // determine if we can scoop the neutral or not
-                // we need either a free backpack slot or a free neutral item slot
+                const hero = EntIndexToHScript(filterTable.units["0"]) as CDOTA_BaseNPC_Hero
+                if(hero == undefined || !hero.IsRealHero())
+                    return false;   
                 let bAllowPickup = false
-                const hNeutralItem = hero.GetItemInSlot(16) // InventorySlot.NEUTRAL_SLOT -- не работает почему-то, на практике ровно nil а не 16
-                if (hNeutralItem == undefined) {
-                    bAllowPickup = true
-                    //print( '^^^Empty neutral slot!' )
-                }
-                else {
-                    let numBackpackItems = 0
-                    for (let nItemSlot = 0; nItemSlot < DOTA_ITEM_INVENTORY_SIZE; nItemSlot++) {
-                        const hItem = hero.GetItemInSlot( nItemSlot ) // index zero based
-                        if (hItem && hItem.IsInBackpack()) {
-                            numBackpackItems = numBackpackItems + 1
-                        }
-                    }
-                    //print( '^^^Backpack slots = ' .. numBackpackItems )
-                    if (numBackpackItems < 3) {
-                        bAllowPickup = true
-                    }
-                }		
 
+                //const hNeutralItem = hero.GetItemInSlot(16) // InventorySlot.NEUTRAL_SLOT -- не работает почему-то, на практике ровно nil а не 16
+                //есть СВОбодный слот в инвентаре
+                for (let nItemSlot = 0; nItemSlot < DOTA_ITEM_INVENTORY_SIZE; nItemSlot++) {
+                    const hItem = hero.GetItemInSlot( nItemSlot ) // index zero based
+                    if (hItem == undefined) {
+                        bAllowPickup = true
+                        break;
+                    }
+                }
+
+    
                 if (bAllowPickup) {
                     //print("inventory has space")
                     return true

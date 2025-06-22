@@ -19,6 +19,7 @@ export  class TeamsSettings{
 
     public m_VictoryMessages = new Map<number, string>();
     public m_GatheredShuffledTeams: number[] = []
+    public maxPlayersPerValidTeam: number = 1;
     constructor() {
         this.SettingTeams()
 
@@ -51,7 +52,7 @@ export  class TeamsSettings{
         GameRules.SetCustomGameTeamMaxPlayers(DotaTeam.CUSTOM_8, 1);
     }
 
-     // Хуйня какая-то, переделать!(для других карт хз как работет)
+     // Хуйня какая-то, переделать!(для других карт плохо работет)
     public GatherAndRegisterValidTeams() : number[]{
         
     //print( "GatherValidTeams:" )
@@ -92,8 +93,31 @@ export  class TeamsSettings{
             table.insert( foundTeamsList, DotaTeam.BADGUYS )
             numTeams = 2
         }
+        this.maxPlayersPerValidTeam = math.floor( 10 / numTeams )
+        //print("GetMapName(): " + GetMapName())
+        switch(GetMapName()){
+            case "forest_solo":{
+                this.maxPlayersPerValidTeam = 1
+                break;
+            }
+            case "desert_duo":{
+                this.maxPlayersPerValidTeam = 2
+                break;
+            }
+            case "temple_quartet":{
+                this.maxPlayersPerValidTeam = 4
+                break;
+            }
+            case "desert_quintet":{
+                this.maxPlayersPerValidTeam = 5
+                break;
+            }
+            default:{
+                this.maxPlayersPerValidTeam = 3
+                break;
+            }
+        }
 
-        const maxPlayersPerValidTeam = math.floor( 10 / numTeams )
        // print("maxPlayersPerValidTeam = " + tostring(maxPlayersPerValidTeam) + " numteams = " + numTeams)
         this.m_GatheredShuffledTeams = ShuffledList( foundTeamsList )
 
@@ -111,7 +135,7 @@ export  class TeamsSettings{
         }
         for(let i = 0; i < numTeams; i++) {
             //print( " - " + this.m_GatheredShuffledTeams[i] + "  " + GetTeamName( this.m_GatheredShuffledTeams[i] ) + " max players = " + tostring(maxPlayersPerValidTeam) )
-            GameRules.SetCustomGameTeamMaxPlayers( this.m_GatheredShuffledTeams[i], maxPlayersPerValidTeam )
+            GameRules.SetCustomGameTeamMaxPlayers( this.m_GatheredShuffledTeams[i], this.maxPlayersPerValidTeam )
         }
         return this.m_GatheredShuffledTeams
     }
