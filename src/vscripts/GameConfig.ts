@@ -4,79 +4,60 @@ export class GameConfig{
     //Bonus items item pools
     static t1BonusItems = 
         [
-            "item_keen_optic",				//
-            //"item_ocean_heart",			//!no water! 
-            "item_broom_handle",			//
-            "item_trusty_shovel",			//
-            "item_arcane_ring",				//
-            "item_chipped_vest",			//
-            "item_possessed_mask",			//
-            "item_mysterious_hat",			//fairy's trinket
-            "item_unstable_wand",			//pig pole
-            "item_pogo_stick",				//tumbler's toy
+            "item_quarterstaff",
+            "item_blades_of_attack",
+            "item_fluffy_hat",
+            "item_helm_of_iron_will",
+            "item_orb_of_corrosion"
         ]
 
     static t2BonusItems =
         [
-            "item_ring_of_aquila",			//
-            "item_nether_shawl",			//
-            "item_dragon_scale",			//
-            "item_pupils_gift",				//
-            "item_vambrace",				//
-            "item_misericorde",				//brigand's blade
-            "item_grove_bow",				//
-            //"item_philosophers_stone",	//!game is not long enough for bonus gold to matter!
-            "item_essence_ring",			//
-            "item_paintball",				//fae grenade
-            "item_bullwhip",				//
-            "item_quicksilver_amulet",		//
+            "item_javelin",
+            "item_mithril_hammer",
+            "item_point_booster",
+            "item_ghost",
+            "item_platemail"
         ]
 
     static t3BonusItems =
         [
-            "item_quickening_charm",		//
-            "item_black_powder_bag",		//blast rig
-            "item_spider_legs",				//
-            "item_paladin_sword",			//
-            "item_titan_sliver",			//
-            "item_mind_breaker",			//
-            "item_enchanted_quiver",		//
-            "item_elven_tunic",				//
-            "item_cloak_of_flames",			//
-            "item_ceremonial_robe",			//
-            "item_psychic_headband",		//
+            "item_hyperstone",
+            "item_ultimate_orb",
+            "item_echo_sabre",
+            "item_dagon_2",
+            "item_kaya"
         ]
 
     static t4BonusItems =
         [
-            "item_timeless_relic",			//
-            "item_spell_prism",				//
-            "item_ascetic_cap",				//
-            "item_heavy_blade",				//witchbane
-            "item_flicker",					//
-            "item_ninja_gear",				//
-            "item_the_leveller",			//
-            "item_spy_gadget",				//telescope
-            "item_trickster_cloak",			//
-            "item_stormcrafter",			//
-            "item_penta_edged_sword",		//
+            "item_moon_shard",
+            "item_lotus_orb",
+            "item_orchid",
+            "item_invis_sword",
+            "item_bfury"
         ]
 
     static t5BonusItems =
         [
-            "item_force_boots",				//
-            "item_desolator_2",				//
-            "item_seer_stone",				//
-            "item_mirror_shield",			//
-            "item_apex",					//
-            "item_demonicon",				//
-            "item_fallen_sky",				//
-            "item_force_field",				//arcanist's armor
-            "item_pirate_hat",				//
-            "item_ex_machina",				//
-            "item_giants_ring",				//
-            "item_book_of_shadows",			//
+            "item_ethereal_blade",
+            "item_hurricane_pike",
+            "item_greater_crit",
+            "item_angels_demise",
+            "item_mjollnir"
         ]
 
-    
+    //Bonus items spawn time (all time in seconds)
+    static T2_ITEMS_TIME:number=420;
+    static T3_ITEMS_TIME:number=840;
+    static T4_ITEMS_TIME:number=1260;
+    static T5_ITEMS_TIME:number=1680;
+
+    static MAX_BONUS_ITEMS:number=100;
+    static BONUS_SPAWN_TIME:number=60;
+    static BONUS_WARN_TIME:number=7;
+
+    static COIN_MONEY:number=200;
+    static FAKE_COIN_CHANCE:number=5;
+    static BOMB_COIN_CHANCE:number=3;
 }

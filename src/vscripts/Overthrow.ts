@@ -3,6 +3,7 @@ import { OverthrowSpawnItem } from "./OverthrowSpawnItem";
 import { AssignTeams, ColorForTeam } from "./Teams";
 import { AddVector } from "./Utility";
 import { Config } from "./Config";
+import { GameConfig } from "./GameConfig";
 
 
 
@@ -336,9 +337,8 @@ export class Overthrow {
         
     }
 
-    // Добавить константу в конфиг
     public OnItemPickedUp(event : DotaItemPickedUpEvent) : void{
-        const MONEY = 200
+        const MONEY = GameConfig.COIN_MONEY
         const name = event.itemname;
         if(event.HeroEntityIndex == undefined) return;
         const item = EntIndexToHScript( event.ItemEntityIndex ) as CDOTA_Item
@@ -351,9 +351,41 @@ export class Overthrow {
         if(!owner.IsPlayerController()) return;
         switch (name) {
             case "item_bag_of_gold":{
-                PlayerResource.ModifyGold(owner.GetPlayerID(), MONEY, true, 0)
-                SendOverheadEventMessage( owner, OverheadAlert.GOLD, baseNpc, MONEY, undefined ) // Звук + эффект деняк
-                break;
+                const cointype=RandomInt(1, 100);
+                if(cointype<=GameConfig.FAKE_COIN_CHANCE){
+                    const ent=PlayerResource.GetSelectedHeroEntity(owner.GetPlayerID())
+                    if(ent!=undefined){
+                        if (ent.GetGold()<MONEY*2){
+                            PlayerResource.SpendGold(owner.GetPlayerID(), ent.GetGold(), 0)
+                        }
+                        else {
+                            PlayerResource.SpendGold(owner.GetPlayerID(), MONEY*2, 0)
+                        }
+                        SendOverheadEventMessage( owner, OverheadAlert.GOLD, baseNpc, MONEY*-2, undefined )
+                        EmitGlobalSound("Overthrow.Item.GoldStolen")
+                    }
+                    break;
+                } else if(cointype>GameConfig.FAKE_COIN_CHANCE && cointype<=GameConfig.FAKE_COIN_CHANCE+GameConfig.BOMB_COIN_CHANCE) {
+                    const ent=PlayerResource.GetSelectedHeroEntity(owner.GetPlayerID())
+                    if(ent!=undefined){
+                        ent.AddNewModifier(undefined, undefined, "modifier_stunned", { duration:1 })
+                        ent.AddNewModifier(undefined, undefined, "modifier_rooted", { duration:1 })
+                        ApplyDamage({
+                        attacker: baseNpc,
+                        victim: ent,
+                        damage: (ent.GetMaxHealth()/100*10)+100,
+                        damage_type: DamageTypes.PURE,
+                        ability: undefined,
+                        damage_flags: DamageFlag.NONE,
+                        });
+                        EmitGlobalSound("Overthrow.Item.GoldBoom")
+                    }
+                }
+                else{
+                    PlayerResource.ModifyGold(owner.GetPlayerID(), MONEY, true, 0)
+                    SendOverheadEventMessage( owner, OverheadAlert.GOLD, baseNpc, MONEY, undefined ) // Звук + эффект деняк
+                    break;
+                }
             }
             case "item_treasure_chest":{
                 this.overthrowSpawnItem.OnTreasureChestPickedUp(event)

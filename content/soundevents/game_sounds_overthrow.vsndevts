@@ -27,4 +27,22 @@
 		limiter_on = 1.0
 		vsnd_files = "sounds/ui/power_up_04.vsnd"
 	}
+	Overthrow.Item.GoldStolen = 
+	{
+		type = "dota_src1_3d"
+		volume = 0.5
+		pitch = 1.0
+		soundlevel = 90.0
+		limiter_on = 1.0
+		vsnd_files = "sounds/ui/last_hit.vsnd"
+	}
+	Overthrow.Item.GoldBoom = 
+	{
+		type = "dota_src1_3d"
+		volume = 0.5
+		pitch = 0.85
+		soundlevel = 90.0
+		limiter_on = 1.0
+		vsnd_files = "sounds/weapons/hero/techies/land_mine01.vsnd"
+	}
 }

@@ -51,6 +51,7 @@ export class GameMode {
 	//Cache sounds for traps
 		PrecacheResource( "soundfile", "soundevents/game_sounds_heroes/game_sounds_dragon_knight.vsndevts", context )
 		PrecacheResource( "soundfile", "soundevents/soundevents_conquest.vsndevts", context )
+        PrecacheResource( "soundfile", "soundevents/soundevents_dota_ui.vsndevts", context )
 
 	// Cache overthrow-specific sounds
 		PrecacheResource( "soundfile", "soundevents/game_sounds_overthrow.vsndevts", context )
