@@ -18,4 +18,6 @@ content/models/
 *.vmesh_c
 *.vsndevts_c
 *.vsnd_c
+*.tga
 panorama_debugger.cfg
+content/materials/overviews/desert_duo.tga
