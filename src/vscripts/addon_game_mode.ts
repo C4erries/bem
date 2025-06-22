@@ -9,5 +9,6 @@ Object.assign(getfenv(), {
 
 if (GameRules.Addon !== undefined) {
     // This code is only run after script_reload, not at startup
-    GameRules.Addon.Reload();
+    print(213)
+    GameRules.Addon.Reload()
 }

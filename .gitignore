@@ -1,9 +1,7 @@
 node_modules
 
 
-game/scripts/vscripts/**/*.lua
-game/scripts/vscripts/*.lua
-!game/scripts/vscripts/lua/*.lua
+
 content/materials/models/
 content/maps/
 content/models/

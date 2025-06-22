@@ -56,8 +56,8 @@ export class Overthrow {
     
     private SetUpFountains(): void{
 
-        LinkLuaModifier( "modifier_fountain_aura_lua", "modifier_fountain_aura_lua.lua", LuaModifierMotionType.NONE)
-        LinkLuaModifier( "modifier_fountain_aura_effect_lua", "modifier_fountain_aura_effect_lua.lua", LuaModifierMotionType.NONE )
+        LinkLuaModifier( "modifier_fountain_aura_lua", "lua/modifier_fountain_aura_lua.lua", LuaModifierMotionType.NONE)
+        LinkLuaModifier( "modifier_fountain_aura_effect_lua", "lua/modifier_fountain_aura_effect_lua.lua", LuaModifierMotionType.NONE )
 
         const fountainEntities = Entities.FindAllByClassname( "ent_dota_fountain")
         for (const fountainEnt  of fountainEntities ) {
