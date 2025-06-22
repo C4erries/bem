@@ -16,7 +16,7 @@ declare global {
 export class GameMode {
 
     public TeamsSettings = new TeamsSettings();
-    public Overthrow = new Overthrow();
+    public Overthrow = new Overthrow(this.TeamsSettings.GatherAndRegisterValidTeams());
 
     public static Precache(this: void, context: CScriptPrecacheContext) {
     //Cache the gold bags
@@ -135,7 +135,7 @@ export class GameMode {
         GameRules.SetShowcaseTime(2);
         GameRules.SetHeroSelectionTime(heroSelectionTime);
 
-        this.Overthrow.GatherAndRegisterValidTeams()
+        
     }
 
     //В Overboss.lua используется
