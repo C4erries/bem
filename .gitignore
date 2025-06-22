@@ -1,7 +1,9 @@
 node_modules
 
 
-/game/scripts/vscripts/**/*.lua
+game/scripts/vscripts/**/*.lua
+game/scripts/vscripts/*.lua
+!game/scripts/vscripts/lua/.lua
 content/materials/models/
 content/maps/
 content/models/
@@ -18,4 +20,6 @@ content/models/
 *.vmesh_c
 *.vsndevts_c
 *.vsnd_c
+*.tga
 panorama_debugger.cfg
+

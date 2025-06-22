@@ -39,11 +39,13 @@ export class modifier_overboss_spawn_gold extends BaseModifier {
 
     // Called when intervalThink is triggered
     OnIntervalThink(): void {
+        if (GameRules.State_Get() != GameState.GAME_IN_PROGRESS) return
         const parent = this.GetParent();
 
+        
         const throwCoin = parent.FindAbilityByName("dota_ability_throw_coin");
         const throwCoinLong = parent.FindAbilityByName("dota_ability_throw_coin_long");
-
+            
         if (throwCoinLong && RandomInt(1, 100) >80){
             parent.CastAbilityNoTarget(throwCoinLong, -1);
         } else if (throwCoin){
