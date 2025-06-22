@@ -13,9 +13,9 @@ declare interface SpawnLocation{
 
 export class OverthrowSpawnItem{
     nNextSpawnItemNumber: number = 1;
-    nMaxItemSpawns: number = 30;
-    spawnTime: number = 60;
-    warnTime: number = 7;
+    nMaxItemSpawns: number = GameConfig.MAX_BONUS_ITEMS;
+    spawnTime: number = GameConfig.BONUS_SPAWN_TIME;
+    warnTime: number = GameConfig.BONUS_WARN_TIME;
     hasWarnedSpawn: boolean = false;
     itemSpawnLocations: SpawnLocation[] = [];
     hCurrentItemSpawnLocation: SpawnLocation | undefined;
@@ -68,10 +68,6 @@ export class OverthrowSpawnItem{
     public ThinkSpecialItemDrop(){
         //Stop spawning items after the maximum amount
         if (this.nNextSpawnItemNumber >= this.nMaxItemSpawns) {
-            return
-        }
-        //Don't spawn if the game is about to }
-        if (nCOUNTDOWNTIMER < 20) {
             return
         }
         const t = GameRules.GetDOTATime( false, false )
@@ -333,21 +329,22 @@ export class OverthrowSpawnItem{
         
         
         let spawnedItem = ""
-        //Константы, либо изменить механику
-        if(nCOUNTDOWNTIMER > 900){
+        if(GameRules.GetDOTATime(false, false) <= GameConfig.T2_ITEMS_TIME){
             spawnedItem = t1
-        }else if(nCOUNTDOWNTIMER > 800){
+        }
+        else if(GameRules.GetDOTATime(false, false) > GameConfig.T2_ITEMS_TIME && GameRules.GetDOTATime(false, false) <= GameConfig.T3_ITEMS_TIME){
             spawnedItem = t2
         }
-        else if(nCOUNTDOWNTIMER > 700){
+        else if(GameRules.GetDOTATime(false, false) > GameConfig.T3_ITEMS_TIME && GameRules.GetDOTATime(false, false) <= GameConfig.T4_ITEMS_TIME){
             spawnedItem = t3
         }
-        else if (nCOUNTDOWNTIMER > 600){
+        else if (GameRules.GetDOTATime(false, false) > GameConfig.T4_ITEMS_TIME && GameRules.GetDOTATime(false, false) <= GameConfig.T5_ITEMS_TIME){
             spawnedItem = t4
         }
-        else{
+        else if (GameRules.GetDOTATime(false, false)>GameConfig.T5_ITEMS_TIME){
             spawnedItem = t5
         }
+
         //print("SpecialItemAdd: item " + spawnedItem)
         //add the item to the inventory && broadcast
         owner.AddItemByName( spawnedItem )
