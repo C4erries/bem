@@ -38,14 +38,14 @@ export class OverthrowSpawnItem{
             return hContainerIndex != -1
         })
         const pickedUpSpawnLocation = this.itemSpawnLocations[pickedUpSpawnLocationIndex]
-        /*
+        
         if(pickedUpSpawnLocation  == undefined){
             print("SpawnLocationInUseUndefined: "+pickedUpSpawnLocationIndex)
         }
-        if(pickedUpSpawnLocation .hDrop == undefined){
+        if(pickedUpSpawnLocation.hDrop == undefined){
             print("pickedUpSpawnLocation.hDrop undefined")
         }
-        */
+        
 
         
         DoEntFire( pickedUpSpawnLocation.world_effects_name, "Stop", "0", 0, this, this )

@@ -3,7 +3,7 @@ local __TS__Class = ____lualib.__TS__Class
 local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local __TS__Decorate = ____lualib.__TS__Decorate
 local __TS__SourceMapTraceBack = ____lualib.__TS__SourceMapTraceBack
-__TS__SourceMapTraceBack(debug.getinfo(1).short_src, {["8"] = 1,["9"] = 1,["10"] = 1,["11"] = 1,["12"] = 1,["13"] = 3,["14"] = 6,["15"] = 7,["16"] = 6,["17"] = 7,["18"] = 10,["19"] = 11,["20"] = 12,["21"] = 10,["22"] = 15,["23"] = 16,["24"] = 15,["25"] = 7,["26"] = 7,["27"] = 7,["28"] = 6,["31"] = 7,["32"] = 22,["33"] = 23,["34"] = 22,["35"] = 23,["36"] = 26,["37"] = 27,["38"] = 26,["39"] = 34,["40"] = 35,["41"] = 36,["43"] = 34,["44"] = 41,["45"] = 42,["46"] = 44,["47"] = 45,["48"] = 47,["49"] = 48,["50"] = 49,["51"] = 50,["53"] = 51,["55"] = 41,["56"] = 23,["57"] = 23,["58"] = 23,["59"] = 22,["62"] = 23});
+__TS__SourceMapTraceBack(debug.getinfo(1).short_src, {["8"] = 1,["9"] = 1,["10"] = 1,["11"] = 1,["12"] = 1,["13"] = 3,["14"] = 6,["15"] = 7,["16"] = 6,["17"] = 7,["18"] = 10,["19"] = 11,["20"] = 12,["21"] = 10,["22"] = 15,["23"] = 16,["24"] = 15,["25"] = 7,["26"] = 7,["27"] = 7,["28"] = 6,["31"] = 7,["32"] = 22,["33"] = 23,["34"] = 22,["35"] = 23,["36"] = 26,["37"] = 27,["38"] = 26,["39"] = 34,["40"] = 35,["41"] = 36,["43"] = 34,["44"] = 41,["45"] = 42,["48"] = 43,["49"] = 46,["50"] = 47,["51"] = 49,["52"] = 50,["53"] = 51,["54"] = 52,["56"] = 53,["58"] = 41,["59"] = 23,["60"] = 23,["61"] = 23,["62"] = 22,["65"] = 23});
 local ____exports = {}
 local ____dota_ts_adapter = require("lib.dota_ts_adapter")
 local BaseAbility = ____dota_ts_adapter.BaseAbility
@@ -42,6 +42,9 @@ function modifier_overboss_spawn_gold.prototype.OnCreated(self)
     end
 end
 function modifier_overboss_spawn_gold.prototype.OnIntervalThink(self)
+    if GameRules:State_Get() ~= DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
+        return
+    end
     local parent = self:GetParent()
     local throwCoin = parent:FindAbilityByName("dota_ability_throw_coin")
     local throwCoinLong = parent:FindAbilityByName("dota_ability_throw_coin_long")

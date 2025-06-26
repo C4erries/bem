@@ -60,4 +60,6 @@ export class GameConfig{
     static COIN_MONEY:number=200;
     static FAKE_COIN_CHANCE:number=5;
     static BOMB_COIN_CHANCE:number=3;
+    static zondbe_in_camp_min = 3
+    static zondbe_in_camp_max = 10
 }
